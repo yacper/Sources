@@ -46,7 +46,7 @@ public class TimeFrame : Indicator
 
         if (t == TimeBegin || t==TimeEnd)
         {
-            Chart.MainArea.DrawVerticalLine(t.ToString(), (source[index] as IBar).Time, LineStroke);
+            Chart.MainArea.DrawVerticalLine((source[index] as IBar).Time.ToString(), (source[index] as IBar).Time, LineStroke);
         }
     }
 }

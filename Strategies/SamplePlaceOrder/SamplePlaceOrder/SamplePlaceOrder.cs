@@ -31,18 +31,34 @@ public class SamplePlaceOrder : Strategy
 {
     protected override void OnStart()
     {
-		//PlaceMarketOrder(ETradeDirection.Buy, 1, "sample");
-        PlaceLimitOrder(ETradeDirection.Buy, 1, 1800, nameof(SamplePlaceOrder));
+		PlaceMarketOrder(ETradeDirection.Buy, 1, "sample", (tr) =>
+        {
+            if (tr.Trade != null)
+            {
+                Info($"MarketOrder成交:{tr.Trade}");
+
+                CloseTrade(tr.Trade, (tr) =>
+                {
+                    if(tr.IsSuccessful)
+                        Info("关闭交易成功");
+                    else
+                        Info("关闭交易失败");
+
+                });
+            }
+        });
+		
+        //PlaceLimitOrder(ETradeDirection.Buy, 1, 1800, nameof(SamplePlaceOrder));
     }
 
-    protected void PlaceMarketOrder(ETradeDirection dir, double quantity, string label = null)
+    protected void PlaceMarketOrder(ETradeDirection dir, double quantity, string label = null, Action<TradeResult> callback = null)
     {
         var oi = new MarketOrderInfo(Symbol.Contract, dir, quantity)
         {
             Label = label
         };
  
-        this.TradingAccount.PlaceOrder(oi);
+        this.TradingAccount.PlaceOrder(oi, callback);
     }
 
     protected void PlaceLimitOrder(ETradeDirection dir , double quantity, double price, string label = null)
@@ -66,7 +82,7 @@ public class SamplePlaceOrder : Strategy
 
     }
 
-    protected void CloseOrder(ITrade t)
+    protected void CloseTrade(ITrade t, Action<TradeResult> callback = null)
     {
         var oi = new MarketOrderInfo(t.Symbol.Contract, t.Direction.Reverse(), t.Quantity)
         {
@@ -74,7 +90,7 @@ public class SamplePlaceOrder : Strategy
             OpenClose    = EOpenClose.Close
         };
 
-        this.TradingAccount.PlaceOrder(oi);
+        this.TradingAccount.PlaceOrder(oi, callback);
     }
 
 }
