@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <EnablePreviewFeatures>true</EnablePreviewFeatures>
+    <Platforms>x64</Platforms>
+    <AssemblyName>SamplePlaceOrder</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="PropertyChanged.Fody" Version="3.4.1">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <Reference Include="Microsoft.Maui.Graphics">
+      <HintPath>..\..\..\..\Api\Microsoft.Maui.Graphics.dll</HintPath>
+    </Reference>
+    <Reference Include="Neo.Api">
+      <HintPath>..\..\..\..\Api\Neo.Api.dll</HintPath>
+    </Reference>
+    <Reference Include="Neo.Common">
+      <HintPath>..\..\..\..\Api\Neo.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="NLog">
+      <HintPath>..\..\..\..\Api\NLog.dll</HintPath>
+    </Reference>
+    <Reference Include="RLib.Base">
+      <HintPath>..\..\..\..\Api\RLib.Base.dll</HintPath>
+    </Reference>
+    <Reference Include="RLib.Graphics">
+      <HintPath>..\..\..\..\Api\RLib.Graphics.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>
