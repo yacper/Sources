@@ -15,6 +15,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Maui.Graphics;
 using Neo.Api;
+using Neo.Api.Alert;
 using Neo.Api.Attributes;
 using Neo.Api.MarketData;
 using Neo.Api.Scripts;
@@ -114,6 +115,7 @@ public class MvaStr : Strategy
             {
                 if (e.Trade != null)
                 {
+                    MyAlert("Open", e.Trade.ToString());
                     if (e.Trade.Direction == ETradeDirection.Buy)
                         LongTrade_ = e.Trade;
                     else
@@ -147,6 +149,7 @@ public class MvaStr : Strategy
         {
             if (e.IsSuccessful)
             {
+                MyAlert("close", t.ToString());
                 if (t.Direction == ETradeDirection.Buy)
                     LongTrade_ = null;
                 else
@@ -166,6 +169,12 @@ public class MvaStr : Strategy
             else
                 ShortClosing_ = true;
         }
+    }
+
+
+    protected void MyAlert(string title, string msg)
+    {
+        Alert(title, msg, new AlertAction[] { new PopupAlertAction(), new EmailAlertAction("469710114@qq.com") });
     }
 
     protected string Label => LongName + Id;
