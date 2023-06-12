@@ -1,4 +1,4 @@
-/********************************************************************
+﻿/********************************************************************
     created:	2017/4/14 15:14:23
     author:		rush
     email:		1分钟动量
@@ -166,7 +166,7 @@ public class RushMinute : Strategy
                 }
 
                 // 止损
-                if(LongTrade_.OpenPrice - b.Close > OpenBar.Change)
+                else if(LongTrade_.OpenPrice - b.Close > OpenBar.Change)
                 {
                     CloseTrade(LongTrade_);
                 }
@@ -182,13 +182,13 @@ public class RushMinute : Strategy
                 //if ((Rsi_.Result.LastValue < 30 && Pinbar_.Result[index].NearlyEqual(1)) ||
                 //    b.Close > DcUpper.LastValue)
                 // 止盈平仓
-                if((b.Close - LongTrade_.OpenPrice)  < OpenBar.Change)
+                if((b.Close - ShortTrade_.OpenPrice)  < OpenBar.Change)
                 {
                     CloseTrade(ShortTrade_);
                 }
 
                 // 止损平仓
-                if((LongTrade_.OpenPrice - b.Close)  < OpenBar.Change)
+                else if((ShortTrade_.OpenPrice - b.Close)  < OpenBar.Change)
                 {
                     CloseTrade(ShortTrade_);
                 }
@@ -211,10 +211,10 @@ public class RushMinute : Strategy
             return ERushType.ENoRush;
 
         // bar新开时检测
-        if(!(source[index] as IBars).IsLastOpen)
+        if(!(source as IBars).IsLastOpen)
             return ERushType.ENoRush;
 
-        var atr = Atr_.ATRLine.Last(-2);
+        var atr = Atr_.ATRLine.Last(2);
 
         IBar b = source[index-1] as IBar;
 
