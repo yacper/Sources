@@ -104,7 +104,7 @@ public class MvaStr : Strategy
 
     protected void ExecuteMarketOrder(SymbolContract contract, ETradeDirection dir, double quantity, string label = null)
     {
-        var oi = new MarketOrderInfo(contract, dir, quantity)
+        var oi = new MarketOrderReq(contract, dir, quantity)
         {
             Label = label
         };
@@ -140,7 +140,7 @@ public class MvaStr : Strategy
 
     protected void CloseTrade(ITrade t)
     {
-        var oi = new MarketOrderInfo(t.Symbol.Contract, t.Direction.Reverse(), t.Quantity)
+        var oi = new MarketOrderReq(t.Symbol.Contract, t.Direction.Reverse(), t.Lots)
         {
             CloseTradeId = t.Id,
             OpenClose    = EOpenClose.Close
