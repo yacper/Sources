@@ -31,7 +31,7 @@ public class SamplePlaceOrder : Strategy
 {
     protected override void OnStart()
     {
-		PlaceMarketOrder(ETradeDirection.Buy, 1, "sample", (tr) =>
+		PlaceMarketOrder(ETradeDirection.Buy, 1, "sampleMarketOrder", (tr) =>
         {
             if (tr.Trade != null)
             {
