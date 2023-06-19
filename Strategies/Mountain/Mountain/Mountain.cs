@@ -1,7 +1,14 @@
 ﻿/********************************************************************
     created:	2017/4/14 15:14:23
     author:		rush
-    email:		黄金20:00 1分钟动量跟随
+    email:		死扛策略 主要用于永远有价值的产品（商品），在其价值低位，死扛做多。不盈利不退出。
+				策略基本要求，不能有隔夜费，不然很容易被隔夜费磨死。
+				开仓：
+					30分钟rsi低于30，并且当前开仓
+                加仓：
+                    在不利方向继续移动一个加仓区间则加仓。
+				平仓：	
+					rsi高于70，并且当前存在的头寸处于盈利状态。非盈利头寸-之前open的，不平。
 *********************************************************************/
 
 using System;
@@ -20,71 +27,51 @@ using Neo.Api.MarketData;
 using Neo.Api.Scripts;
 using Neo.Api.Symbols;
 using Neo.Api.Trading;
-using Neo.Common.MarketData;
 using Neo.Common.Scripts;
 using Neo.Common.Symbols;
 using RLib.Base;
-using RLib.Base.Utils;
 using RLib.Graphics;
 
 namespace Neo.Scripts.Custom
 {
 [Strategy(Group = "Trends")]
-public class RushMinute : Strategy
+public class Mountain : Strategy
 {
-    public enum ERushType
+    public enum EAllowDirection
     {
-        ENoRush,
-        ERushUp,  // 向上急拉
-        ERushDown // 向下急拉
+        Buy  = 2,
+        Sell = 4,
     }
 
-
 #region 用户Paras
-
-    [Parameter, Description("交易方向"), DefaultValue(ETradeDirection.Bothway)]
-    public ETradeDirection Direction { get; set; }
-
-    [Parameter, Description("手数"), Range(1, int.MaxValue), DefaultValue(1)]
-    public double Lots { get; set; }
-
+    [Parameter, Description("交易方向"), DefaultValue(EAllowDirection.Buy)]
+    public EAllowDirection Direction { get; set; }       // 
 
     [Parameter, Description("Rsi周期"), Range(1, int.MaxValue), DefaultValue(14)]
     public int RsiPeriods { get; set; }
 
-    [Parameter, Range(1, int.MaxValue), DefaultValue(20)]
-    public int DcPeriods { get; set; }
+    [Parameter, Description("Rsi High Level"), Range(1, 100), DefaultValue(70)]
+    public int RsiHighLevel { get; set; }
 
-    [Parameter, Range(1, int.MaxValue), DefaultValue(14)]
-    public int AtrPeriods { get; set; }
-
-    [Parameter, DefaultValue("19:30:0")]
-    public TimeSpan DcStartTime { get; set; }
-
-    [Parameter, DefaultValue("20:00:0")]
-    public TimeSpan DcEndTime { get; set; }   
-
-    [Parameter, DefaultValue("20:00:0")]
-    public TimeSpan StartOpenTime { get; set; }
-
-    [Parameter, DefaultValue("23:00:0")]
-    public TimeSpan EndOpenTime { get; set; }   
+    [Parameter, Description("Rsi Low Level"), Range(1, 100), DefaultValue(30)]
+    public int RsiLowLevel { get; set; }
 
 
+    [Parameter, Range(1, int.MaxValue), DefaultValue(1)]
+    public double Lots { get; set; }
 
-    [Output(EOutputType.Line), Stroke("#b667c5")]
-    public IIndicatorDatas DcUpper { get; set; }
+    [Parameter, Description("加仓区间"), Range(0.000001, double.MaxValue), DefaultValue(1)]
+    public double IncreaseGap { get; set; }
 
-    [Output(EOutputType.Line), Stroke("#b667c5")]
-    public IIndicatorDatas DcLower { get; set; }
+    [Parameter, Description("最小开仓区间，与上一个非盈利头寸的最小距离"), Range(0.000001, double.MaxValue), DefaultValue(1)]
+    public double MinOpenGap { get; set; }
+
 
 #endregion
 
     protected override void OnStart()
     {
-        Pinbar_ = CreateIndicator<Pinbar>();
         Rsi_    = CreateIndicator<RSI>(Bars.Closes, RsiPeriods);
-        Atr_    = CreateIndicator<ATR>(AtrPeriods);
     }
 
 
@@ -95,50 +82,41 @@ public class RushMinute : Strategy
 
         IBar b = (source as IBars)[index];
 
-        // 更新dc
-        if (b.LastTime.TimeOfDay.IsWithin(DcStartTime, DcEndTime))
-        {
-            DcUpper[index] = (source as IBars).Highs.Max(index - DcPeriods + 1, index);
-            DcLower[index] = (source as IBars).Lows.Min(index - DcPeriods + 1, index);
+        //// 更新dc
+        //if (b.LastTime.TimeOfDay.IsWithin(DcStartTime, DcEndTime))
+        //{
+        //    DcUpper[index] = (source as IBars).Highs.Max(index - DcPeriods + 1, index);
+        //    DcLower[index] = (source as IBars).Lows.Min(index - DcPeriods + 1, index);
 
-            TodayFinished = false;
-        }
+        //    TodayFinished = false;
+        //}
 
-            // 开仓时间, 未开仓
-        if (!Opened && !OrderSending && b.LastTime.TimeOfDay.IsWithin(StartOpenTime, EndOpenTime) && !TodayFinished)
+        // 开仓时间, 未开仓
+        if (!Opened && !OrderSending)
         {
-            var rushType = DetectRushType(source, index);
-            if (rushType == ERushType.ERushUp)
-            {
-                /* 上升趋势
-                    开仓条件：  1.Rsi小于30
-                                2. 出现pinbar
-                */
-                //if (Rsi_.Result.LastValue < 30 && Pinbar_.Result[index].NearlyEqual(1))
+            if (Direction == EAllowDirection.Buy)
+            {  
+                if (Rsi_.Result.LastValue < 30 && Pinbar_.Result[index].NearlyEqual(1))
                 {
                     ExecuteMarketOrder(Symbol.Contract, ETradeDirection.Buy, Lots, Label);
-                    OpenBar       = (source as IBars)[index-1];
-                    TodayFinished = true;
                 }
             }
-            else if (rushType == ERushType.ERushDown)
+            else if (TrendType == ETrendType.DownTrend)
             {
                 /* 下降趋势
                      开仓条件：  1.Rsi大于70
                                  2. 出现pinbar
                 */
-                //if (Rsi_.Result.LastValue > 70 && Pinbar_.Result[index].NearlyEqual(-1))
+                if (Rsi_.Result.LastValue > 70 && Pinbar_.Result[index].NearlyEqual(-1))
                 {
                     ExecuteMarketOrder(Symbol.Contract, ETradeDirection.Sell, Lots, Label);
-                    OpenBar = (source as IBars)[index-1];
-                    TodayFinished = true;
                 }
             }
         }
 
         // 正常平仓时间
         if (Opened && !OrderSending)
-            //if (Opened && !OrderSending && b.LastTime.TimeOfDay.IsWithin(DcEndTime, LastExitTime))
+        //if (Opened && !OrderSending && b.LastTime.TimeOfDay.IsWithin(DcEndTime, LastExitTime))
         {
             // 一旦开仓，更新dc，用于止盈或止损
             //if (b.LastTime.TimeOfDay.IsWithin(DcStartTime, DcEndTime))
@@ -148,51 +126,28 @@ public class RushMinute : Strategy
             }
 
             if (LongTrade_ != null) // long
-            {
-                /* 平仓条件
-                        
-                        
-                                    //rsi大于70，
-                                    //    1. 出现pinbar
-                                    //    2. 跌破dc downChannel
-                              */
-                //if ((Rsi_.Result.LastValue > 70 && Pinbar_.Result[index].NearlyEqual(-1)) ||
-                //    b.Close < DcLower.LastValue)
-
-                // 止盈平仓
-                if((b.Close - LongTrade_.OpenPrice)  > OpenBar.Change)
+            {/* 平仓条件
+                    rsi大于70，
+                        1. 出现pinbar
+                        2. 跌破dc downChannel
+              */
+                if ((Rsi_.Result.LastValue > 70 && Pinbar_.Result[index].NearlyEqual(-1)) ||
+                    b.Close < DcLower.LastValue)
                 {
                     CloseTrade(LongTrade_);
                 }
-
-                // 止损
-                else if(LongTrade_.OpenPrice - b.Close > OpenBar.Change)
-                {
-                    CloseTrade(LongTrade_);
-                }
-
             }
             else if (ShortTrade_ != null) // short
-            {
-                /* 平仓条件
-                                    rsi小于30，
-                                        1. 出现pinbar
-                                        2. 跌破dc downChannel
-                              */
-                //if ((Rsi_.Result.LastValue < 30 && Pinbar_.Result[index].NearlyEqual(1)) ||
-                //    b.Close > DcUpper.LastValue)
-                // 止盈平仓
-                if((b.Close - ShortTrade_.OpenPrice)  < OpenBar.Change)
+            {/* 平仓条件
+                    rsi小于30，
+                        1. 出现pinbar
+                        2. 跌破dc downChannel
+              */
+                if ((Rsi_.Result.LastValue < 30 && Pinbar_.Result[index].NearlyEqual(1)) ||
+                    b.Close > DcUpper.LastValue)
                 {
                     CloseTrade(ShortTrade_);
                 }
-
-                // 止损平仓
-                else if((ShortTrade_.OpenPrice - b.Close)  < OpenBar.Change)
-                {
-                    CloseTrade(ShortTrade_);
-                }
-
             }
         }
 
@@ -205,37 +160,9 @@ public class RushMinute : Strategy
     }
 
 
-    protected ERushType DetectRushType(ISource source, int index)
-    {
-        if (!(source is IBars))
-            return ERushType.ENoRush;
-
-        // bar新开时检测
-        if(!(source as IBars).IsLastOpen)
-            return ERushType.ENoRush;
-
-        var atr = Atr_.ATRLine.Last(2);
-
-        IBar b = source[index-1] as IBar;
-
-        if (b.Change > atr*2)  // 超过2倍
-        {
-            return ERushType.ERushUp;
-
-        }
-        else if (b.Change < -atr * 2)
-        {
-            return ERushType.ERushDown;
-        }
-
-        return ERushType.ENoRush;
-    }
-
-
-
     protected void ExecuteMarketOrder(SymbolContract contract, ETradeDirection dir, double quantity, string label = null)
     {
-        var oi = new MarketOrderReq(contract, dir, quantity)
+        var oi = new MarketOrderInfo(contract, dir, quantity)
         {
             Label = label
         };
@@ -272,7 +199,7 @@ public class RushMinute : Strategy
 
     protected void CloseTrade(ITrade t)
     {
-        var oi = new MarketOrderReq(t.Symbol.Contract, t.Direction.Reverse(), t.Lots)
+        var oi = new MarketOrderInfo(t.Symbol.Contract, t.Direction.Reverse(), t.Quantity)
         {
             CloseTradeId = t.Id,
             OpenClose    = EOpenClose.Close
@@ -317,7 +244,6 @@ public class RushMinute : Strategy
 
     protected void MyAlert(string title, string msg) { Alert(title, msg, new AlertAction[] { new PopupAlertAction(), new EmailAlertAction("469710114@qq.com") }); }
 
-
     protected string Label => LongName + Id;
 
 
@@ -332,13 +258,8 @@ public class RushMinute : Strategy
     protected bool OrderSending => LongSending_ | LongClosing_ | ShortClosing_ | ShortSending_;
     protected bool Opened       => LongTrade_ != null || ShortTrade_ != null;
 
-    protected bool TodayFinished = false; // 今日结束
-    protected IBar OpenBar       = null;    // 开仓bar
 
 
     protected Pinbar Pinbar_;
-    protected RSI    Rsi_;
-    protected ATR    Atr_;
-}
-
+    protected RSI    Rsi_;}
 }
