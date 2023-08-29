@@ -14,20 +14,23 @@ using RLib.Base;
 
 namespace Neo
 {
-[Strategy(Group = "Trends")]
+	[Strategy(Group = "Trends")]
 public class SampleMaCross : Strategy
-{
+	{
 #region 用户Paras
 
-    [Parameter, DefaultValue("Hello world!")]
-    public string Message { get; set; }
+		[Parameter, DefaultValue("Hello world!")]
+	public string Message
+		{
+			get; set;
+		}
 
 #endregion
 
-    protected override void OnStart()
-    {
-        Info(Message);
-    }
+		protected override void OnStart()
+		{
+			Info(Message);
+		}
 
-  }
+	}
 }
