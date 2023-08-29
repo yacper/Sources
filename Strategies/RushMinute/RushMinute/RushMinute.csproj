@@ -19,14 +19,8 @@
     <Reference Include="Neo.Common">
       <HintPath>..\..\..\..\Api\Neo.Common.dll</HintPath>
     </Reference>
-    <Reference Include="NLog">
-      <HintPath>..\..\..\..\Api\NLog.dll</HintPath>
-    </Reference>
-    <Reference Include="RLib.Base">
+      <Reference Include="RLib.Base">
       <HintPath>..\..\..\..\Api\RLib.Base.dll</HintPath>
-    </Reference>
-    <Reference Include="RLib.Graphics">
-      <HintPath>..\..\..\..\Api\RLib.Graphics.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>

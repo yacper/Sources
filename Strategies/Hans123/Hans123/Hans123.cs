@@ -4,27 +4,12 @@
     email:		
 *********************************************************************/
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Maui.Graphics;
 using Neo.Api;
-using Neo.Api.Alert;
-using Neo.Api.Attributes;
-using Neo.Api.MarketData;
-using Neo.Api.Scripts;
-using Neo.Api.Symbols;
-using Neo.Api.Trading;
-using Neo.Common.Scripts;
-using Neo.Common.Symbols;
+using Neo.Common;
 using RLib.Base;
 using RLib.Base.Utils;
-using RLib.Graphics;
 
 namespace Neo.Scripts.Custom
 {
@@ -49,17 +34,17 @@ public class Hans123 : Strategy
     public TimeSpan LastExitTime { get; set; }
 
 
-    [Output(EOutputType.Line), Stroke("#b667c5")]
-    public IIndicatorDatas DcUpper { get; set; }
+    [Output, Stroke("#b667c5")]
+    public IOutputIndicatorDatas DcUpper { get; set; }
 
-    [Output(EOutputType.Line), Stroke("#b667c5")]
-    public IIndicatorDatas DcLower { get; set; }
+    [Output, Stroke("#b667c5")]
+    public IOutputIndicatorDatas DcLower { get; set; }
 
-    [Output(EOutputType.Line), Stroke("#ff0000")]
-    public IIndicatorDatas DcStopUpper { get; set; }
+    [Output, Stroke("#ff0000")]
+    public IOutputIndicatorDatas DcStopUpper { get; set; }
 
-    [Output(EOutputType.Line), Stroke("#ff0000")]
-    public IIndicatorDatas DcStopLower { get; set; }
+    [Output, Stroke("#ff0000")]
+    public IOutputIndicatorDatas DcStopLower { get; set; }
 
 
     [Parameter, Range(1, int.MaxValue), DefaultValue(1)]
@@ -163,7 +148,7 @@ public class Hans123 : Strategy
 
     protected void ExecuteMarketOrder(SymbolContract contract, ETradeDirection dir, double quantity, string label = null)
     {
-        var oi = new MarketOrderInfo(contract, dir, quantity)
+        var oi = new MarketOrderReq(contract, dir, quantity)
         {
             Label = label
         };
@@ -200,7 +185,7 @@ public class Hans123 : Strategy
 
     protected void CloseTrade(ITrade t)
     {
-        var oi = new MarketOrderInfo(t.Symbol.Contract, t.Direction.Reverse(), t.Quantity)
+        var oi = new MarketOrderReq(t.Symbol.Contract, t.Direction.Reverse(), t.Lots)
         {
             CloseTradeId = t.Id,
             OpenClose    = EOpenClose.Close

@@ -2,23 +2,10 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Maui.Graphics;
 using Neo.Api;
-using Neo.Api.Alert;
-using Neo.Api.Attributes;
-using Neo.Api.Charts;
-using Neo.Api.MarketData;
-using Neo.Api.Providers;
-using Neo.Api.Scripts;
-using Neo.Api.Symbols;
-using Neo.Common.Scripts;
+using Neo.Common;
 using RLib.Base;
-using RLib.Graphics;
 
 namespace Neo.Scripts.Custom
 {
@@ -38,16 +25,44 @@ public class TimeFrame : Indicator
 
     protected override void OnStart()
     {
+        Datas_     = CreateIndicatorDatas();
     }
+
+    protected IIndicatorDatas Datas_;
 
     protected override void OnData(ISource source, int index)
     {
-        var t = (source[index] as IBar).Time.TimeOfDay;
-
-        if (t == TimeBegin || t==TimeEnd)
+        if (source[index] is ITick tick)
         {
-            Chart.MainArea.DrawVerticalLine((source[index] as IBar).Time.ToString(), (source[index] as IBar).Time, LineStroke);
+            Info($"OnTick:{tick}");
         }
+        else if (source[index] is IBar bar)
+        {
+            Info($"OnBar:{bar}");
+
+            // 在实时阶段，可以通过source.IsLastOpen判断是否新开一个bar
+            if (IsHistoryOver && source.IsLastOpen)
+            {
+                Info("new bar open");
+            }
+        }
+        else if (source[index] is double value)
+        {
+            Info($"OnData:{value}");
+            // 在实时阶段，可以通过source.IsLastOpen判断是否新开一个data
+            if (IsHistoryOver && source.IsLastOpen)
+            {
+                Info("new data open");
+            }
+        }
+
+
+        //var t = (source[index] as IBar).Time.TimeOfDay;
+
+        //if (t == TimeBegin || t==TimeEnd)
+        //{
+        //    Chart.MainArea.DrawVerticalLine((source[index] as IBar).Time.ToString(), (source[index] as IBar).Time, LineStroke);
+        //}
     }
 }
 }

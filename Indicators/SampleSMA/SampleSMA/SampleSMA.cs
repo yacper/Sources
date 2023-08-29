@@ -2,22 +2,10 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Maui.Graphics;
 using Neo.Api;
-using Neo.Api.Alert;
-using Neo.Api.Attributes;
-using Neo.Api.MarketData;
-using Neo.Api.Providers;
-using Neo.Api.Scripts;
-using Neo.Api.Symbols;
-using Neo.Common.Scripts;
+using Neo.Common;
 using RLib.Base;
-using RLib.Graphics;
 
 namespace Neo
 {
@@ -32,22 +20,25 @@ public class SampleSMA : Indicator
     public int Periods { get; set; }
 
     [Output, Stroke("#b667c5")]
-    public IIndicatorDatas Result { get; set; }
+    public IOutputIndicatorDatas Result { get; set; }
 #endregion
 
-    protected override void OnInit()
+    protected override void OnStart()
     {
     }
 
-    public override void Calculate(int period, bool realtime)
+    protected override void OnData(ISource source, int index)  
     {
-        if (period + 1 < Periods ||
-            Source.Count <= period)
+        if (source != Source)
             return;
 
-        int startIndex = period - Periods + 1;
+        if (index + 1 < Periods ||
+            Source.Count <= index)
+            return;
+
+        int startIndex = index - Periods + 1;
         int endIndex   = startIndex + Periods - 1;
-        Result[period] = Source.Avg(startIndex, endIndex);
+        Result[index] = Source.Avg(startIndex, endIndex);
     }
 }
 }

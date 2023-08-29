@@ -4,25 +4,13 @@
     email:		
 *********************************************************************/
 
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Maui.Graphics;
 using Neo.Api;
-using Neo.Api.Attributes;
-using Neo.Api.MarketData;
-using Neo.Api.Scripts;
-using Neo.Api.Symbols;
-using Neo.Api.Trading;
-using Neo.Common.Scripts;
-using Neo.Common.Symbols;
+using Neo.Common;
 using RLib.Base;
-using RLib.Graphics;
 
 namespace Neo.Scripts.Custom
 {
@@ -53,7 +41,7 @@ public class SamplePlaceOrder : Strategy
 
     protected void PlaceMarketOrder(ETradeDirection dir, double quantity, string label = null, Action<TradeResult> callback = null)
     {
-        var oi = new MarketOrderInfo(Symbol.Contract, dir, quantity)
+        var oi = new MarketOrderReq(Symbol.Contract, dir, quantity)
         {
             Label = label
         };
@@ -63,28 +51,28 @@ public class SamplePlaceOrder : Strategy
 
     protected void PlaceLimitOrder(ETradeDirection dir , double quantity, double price, string label = null)
     {
-        LimitOrderInfo orderInfo = new LimitOrderInfo(Symbol.Contract, dir, price, quantity, ETIF.GTC)
+        var orderInfo = new LimitOrderReq(Symbol.Contract, dir, price, quantity, ETIF.GTC)
             { Label = label };
 
         // 使用chart当前symbol对应的provider的主账户
         TradeOperation operation = TradingAccount.PlaceOrder(orderInfo, tradeResult =>
         {// 执行完毕回调
             if (tradeResult.IsSuccessful)
-                Logger.Info($"限价单发送成功 {tradeResult}");
+                Info($"限价单发送成功 {tradeResult}");
             else
-                Logger.Info($"限价单发送失败 {tradeResult}");
+                Info($"限价单发送失败 {tradeResult}");
         });
 
         if (operation.IsExecuting)
         {
-            Logger.Info("Operation Is Executing");
+            Info("Operation Is Executing");
         }
 
     }
 
     protected void CloseTrade(ITrade t, Action<TradeResult> callback = null)
     {
-        var oi = new MarketOrderInfo(t.Symbol.Contract, t.Direction.Reverse(), t.Quantity)
+        var oi = new MarketOrderReq(t.Symbol.Contract, t.Direction.Reverse(), t.Lots)
         {
             CloseTradeId = t.Id,
             OpenClose    = EOpenClose.Close

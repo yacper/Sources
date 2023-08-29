@@ -8,24 +8,10 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Maui.Graphics;
 using Neo.Api;
-using Neo.Api.Alert;
-using Neo.Api.Attributes;
-using Neo.Api.MarketData;
-using Neo.Api.Scripts;
-using Neo.Api.Symbols;
-using Neo.Api.Trading;
-using Neo.Common.MarketData;
-using Neo.Common.Scripts;
-using Neo.Common.Symbols;
+using Neo.Common;
 using RLib.Base;
-using RLib.Base.Utils;
-using RLib.Graphics;
 
 namespace Neo.Scripts.Custom
 {
@@ -72,11 +58,11 @@ public class RushMinute : Strategy
 
 
 
-    [Output(EOutputType.Line), Stroke("#b667c5")]
-    public IIndicatorDatas DcUpper { get; set; }
+    [Output, Stroke("#b667c5")]
+    public IOutputIndicatorDatas DcUpper { get; set; }
 
-    [Output(EOutputType.Line), Stroke("#b667c5")]
-    public IIndicatorDatas DcLower { get; set; }
+    [Output, Stroke("#b667c5")]
+    public IOutputIndicatorDatas DcLower { get; set; }
 
 #endregion
 

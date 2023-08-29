@@ -3,28 +3,11 @@
     author:		rush
     email:		
 *********************************************************************/
-
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Maui.Graphics;
 using Neo.Api;
-using Neo.Api.Alert;
-using Neo.Api.Attributes;
-using Neo.Api.MarketData;
-using Neo.Api.Scripts;
-using Neo.Api.Symbols;
-using Neo.Api.Trading;
-using Neo.Common.MarketData;
-using Neo.Common.Scripts;
-using Neo.Common.Symbols;
-using RLib.Base;
-using RLib.Graphics;
+using Neo.Common;
 
 namespace Neo.Scripts.Custom
 {
@@ -40,15 +23,17 @@ public class BreakGo : Strategy
     public int Quantity { get; set; }
 
     [Output, Stroke("#b667c5")]
-    public IIndicatorDatas Upper { get; set; }
+    public IOutputIndicatorDatas Upper { get; set; }
 
     [Output, Stroke("#b667c5")]
-    public IIndicatorDatas Lower { get; set; }
+    public IOutputIndicatorDatas Lower { get; set; }
 
 #endregion
 
     protected override void OnStart() { DC_ = CreateIndicator<DC>(Periods); }
 
+	
+	
 
     protected override void OnData(ISource source, int index)
     {
@@ -82,7 +67,7 @@ public class BreakGo : Strategy
 
     protected void ExecuteMarketOrder(SymbolContract contract, ETradeDirection dir, double quantity, string label = null)
     {
-        var oi = new MarketOrderInfo(contract, dir, quantity)
+        var oi = new MarketOrderReq(contract, dir, quantity)
         {
             Label = label
         };
@@ -118,7 +103,7 @@ public class BreakGo : Strategy
 
     protected void CloseTrade(ITrade t)
     {
-        var oi = new MarketOrderInfo(t.Symbol.Contract, t.Direction.Reverse(), t.Quantity)
+        var oi = new MarketOrderReq(t.Symbol.Contract, t.Direction.Reverse(), t.Lots)
         {
             CloseTradeId = t.Id,
             OpenClose    = EOpenClose.Close
