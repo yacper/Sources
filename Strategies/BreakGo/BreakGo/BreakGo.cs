@@ -23,10 +23,10 @@ public class BreakGo : Strategy
     public int Quantity { get; set; }
 
     [Output, Stroke("#b667c5")]
-    public IOutputIndicatorDatas Upper { get; set; }
+    public IIndicatorDatas Upper { get; set; }
 
     [Output, Stroke("#b667c5")]
-    public IOutputIndicatorDatas Lower { get; set; }
+    public IIndicatorDatas Lower { get; set; }
 
 #endregion
 

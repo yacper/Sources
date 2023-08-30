@@ -20,9 +20,6 @@
     <Reference Include="Neo.Common">
       <HintPath>..\..\..\..\Api\Neo.Common.dll</HintPath>
     </Reference>
-    <Reference Include="RLib.Base">
-      <HintPath>..\..\..\..\Api\RLib.Base.dll</HintPath>
-    </Reference>
     </ItemGroup>
 
 </Project>

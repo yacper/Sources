@@ -22,14 +22,14 @@ public class ZZ : Indicator
     //public int Depth { get; set; j}
 
     [Output, Stroke("#00eeee")]
-    public IOutputIndicatorDatas Result { get; set; }
+    public IIndicatorDatas Result { get; set; }
 
 
     [Output, Stroke("#0000ee")]
-    public IOutputIndicatorDatas Troughs_ { get; set; }
+    public IIndicatorDatas Troughs_ { get; set; }
 
     [Output, Stroke("#0000ee")]
-    public IOutputIndicatorDatas Peeks_ { get; set; }
+    public IIndicatorDatas Peeks_ { get; set; }
 
 
     protected override void OnStart()

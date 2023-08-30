@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.Maui.Graphics;
 using Neo.Api;
 using Neo.Common;
-using RLib.Base;
+//using RLib.Base;
 
 namespace Neo
 {
@@ -26,7 +26,7 @@ public class SampleSMA : Indicator
 		}
 
 		[Output, Stroke("#b667c5")]
-	public IOutputIndicatorDatas Result
+	public IIndicatorDatas Result
 		{
 			get; set;
 		}

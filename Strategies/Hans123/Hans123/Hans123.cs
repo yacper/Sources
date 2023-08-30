@@ -9,7 +9,6 @@ using System.ComponentModel.DataAnnotations;
 using Neo.Api;
 using Neo.Common;
 using RLib.Base;
-using RLib.Base.Utils;
 
 namespace Neo.Scripts.Custom
 {
@@ -35,16 +34,16 @@ public class Hans123 : Strategy
 
 
     [Output, Stroke("#b667c5")]
-    public IOutputIndicatorDatas DcUpper { get; set; }
+    public IIndicatorDatas DcUpper { get; set; }
 
     [Output, Stroke("#b667c5")]
-    public IOutputIndicatorDatas DcLower { get; set; }
+    public IIndicatorDatas DcLower { get; set; }
 
     [Output, Stroke("#ff0000")]
-    public IOutputIndicatorDatas DcStopUpper { get; set; }
+    public IIndicatorDatas DcStopUpper { get; set; }
 
     [Output, Stroke("#ff0000")]
-    public IOutputIndicatorDatas DcStopLower { get; set; }
+    public IIndicatorDatas DcStopLower { get; set; }
 
 
     [Parameter, Range(1, int.MaxValue), DefaultValue(1)]

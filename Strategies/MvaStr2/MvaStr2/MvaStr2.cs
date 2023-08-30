@@ -12,7 +12,6 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.Maui.Graphics;
 using Neo.Api;
 using Neo.Common;
-using RLib.Base;
 
 namespace Neo.Scripts.Custom
 {
@@ -40,19 +39,19 @@ public class MvaStr2 : Strategy
     public double Quantity { get; set; }
 
     [Output, Stroke("green")]
-    public IOutputIndicatorDatas Ma1Result { get; set; }
+    public IIndicatorDatas Ma1Result { get; set; }
 
     [Output, Stroke("blue")]
-    public IOutputIndicatorDatas Ma2Result { get; set; }
+    public IIndicatorDatas Ma2Result { get; set; }
 
     [Output, Stroke("pink")]
-    public IOutputIndicatorDatas Ma3Result { get; set; }
+    public IIndicatorDatas Ma3Result { get; set; }
 
     [Output, Stroke("aliceblue")]
-    public IOutputIndicatorDatas Ma4Result { get; set; }
+    public IIndicatorDatas Ma4Result { get; set; }
 
     [Output, Stroke("purple")]
-    public IOutputIndicatorDatas Ma5Result { get; set; }
+    public IIndicatorDatas Ma5Result { get; set; }
 
 
 #endregion

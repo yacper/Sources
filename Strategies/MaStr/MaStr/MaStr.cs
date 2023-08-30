@@ -36,13 +36,13 @@ public class MvaStr : Strategy
 		}
 
 		[Output, Stroke("green")]
-	public IOutputIndicatorDatas QuickMaResult
+	public IndicatorDatas QuickMaResult
 		{
 			get; set;
 		}
 
 		[Output, Stroke("blue")]
-	public IOutputIndicatorDatas SlowMaResult
+	public IIndicatorDatas SlowMaResult
 		{
 			get; set;
 		}
