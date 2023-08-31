@@ -5,6 +5,7 @@
     <EnablePreviewFeatures>true</EnablePreviewFeatures>
     <Platforms>x64</Platforms>
     <AssemblyName>BreakGo</AssemblyName>
+		<DebugType>embedded</DebugType>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="PropertyChanged.Fody" Version="3.4.1">
@@ -21,4 +22,8 @@
 		</Reference>
 
   </ItemGroup>
+
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+		<Exec Command="move /y $(TargetPath) $(ProjectDir)..\..\" />
+	</Target>
 </Project>

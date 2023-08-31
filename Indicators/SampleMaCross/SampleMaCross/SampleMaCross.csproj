@@ -5,6 +5,8 @@
     <EnablePreviewFeatures>true</EnablePreviewFeatures>
     <Platforms>x64</Platforms>
     <AssemblyName>SampleMaCross</AssemblyName>
+
+		<DebugType>embedded</DebugType>
   </PropertyGroup>
   <ItemGroup>
    
@@ -24,4 +26,8 @@
       <HintPath>..\..\..\..\Api\RLib.Base.dll</HintPath>
     </Reference>
   </ItemGroup>
+
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+		<Exec Command="move /y $(TargetPath) $(ProjectDir)..\..\" />
+	</Target>
 </Project>

@@ -5,6 +5,7 @@
     <EnablePreviewFeatures>true</EnablePreviewFeatures>
     <Platforms>x64</Platforms>
     <AssemblyName>ZZ</AssemblyName>
+		<DebugType>embedded</DebugType>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="PropertyChanged.Fody" Version="3.4.1">
@@ -23,4 +24,8 @@
       <HintPath>..\..\..\..\Api\RLib.Base.dll</HintPath>
     </Reference>
   </ItemGroup>
+
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+		<Exec Command="move /y $(TargetPath) $(ProjectDir)..\..\" />
+	</Target>
 </Project>
