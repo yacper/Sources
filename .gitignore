@@ -20,3 +20,5 @@ Indicators/*.pdb
 
 Strategies/*.dll
 Strategies/*.pdb
+
+.vscode

@@ -3,33 +3,33 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.Maui.Graphics;
-using Neo.Api;
-using Neo.Common;
+using Sparks.Api;
+using Sparks.Common;
 
 namespace Neo.Scripts.Custom
 {
 	[Indicator(Group = "Trends")]
-public class SampleSMA : Indicator
+	public class SampleSMA : Indicator
 	{
-#region 用户参数
+		#region 用户参数
 		[Parameter, Display(Name = "Source"), DefaultValue("Closes")]
-	public IDatas Source
+		public IDatas Source
 		{
 			get; set;
 		}
 
 		[Parameter, Display(Name = "Periods"), Range(1, int.MaxValue), DefaultValue(7)]
-	public int Periods
+		public int Periods
 		{
 			get; set;
 		}
 
 		[Output, Stroke("#b667c5")]
-	public IIndicatorDatas Result
+		public IIndicatorDatas Result
 		{
 			get; set;
 		}
-#endregion
+		#endregion
 
 		protected override void OnStart()
 		{

@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.Maui.Graphics;
-using Neo.Api;
-using Neo.Common;
+using Sparks.Api;
+using Sparks.Common;
 
-namespace Neo.Scripts.Custom
+namespace Sparks.Scripts.Custom
 {
 [Indicator(Group = "Utils")]
 public class TimeFrame : Indicator

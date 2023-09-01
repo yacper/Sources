@@ -17,10 +17,10 @@
       <HintPath>..\..\..\..\Api\Microsoft.Maui.Graphics.dll</HintPath>
     </Reference>
     <Reference Include="Neo.Api">
-      <HintPath>..\..\..\..\Api\Neo.Api.dll</HintPath>
+      <HintPath>..\..\..\..\Api\Sparks.Api.dll</HintPath>
     </Reference>
     <Reference Include="Neo.Common">
-      <HintPath>..\..\..\..\Api\Neo.Common.dll</HintPath>
+      <HintPath>..\..\..\..\Api\Sparks.Common.dll</HintPath>
     </Reference>
     <Reference Include="RLib.Base">
       <HintPath>..\..\..\..\Api\RLib.Base.dll</HintPath>

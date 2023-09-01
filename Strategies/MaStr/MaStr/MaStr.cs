@@ -7,36 +7,36 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.Maui.Graphics;
-using Neo.Api;
-using Neo.Common;
+using Sparks.Api;
+using Sparks.Common;
 
-namespace Neo
+namespace Sparks
 {
 	[Strategy(Group = "Trends")]
 public class MvaStr : Strategy
 	{
 #region 用户Paras
 
-		[Parameter, Range(1, int.MaxValue), DefaultValue(5)]
+		[Parameter, Range(1, 100), DefaultValue(5)]
 	public int QuickPeriods
 		{
 			get; set;
 		}
 
-		[Parameter, Range(1, int.MaxValue), DefaultValue(20)]
+		[Parameter, Range(50, 200), DefaultValue(20)]
 	public int SlowPeriods
 		{
 			get; set;
 		}
 
-		[Parameter, Range(1, int.MaxValue), DefaultValue(1)]
+		[Parameter,  DefaultValue(1)]
 	public double Quantity
 		{
 			get; set;
 		}
 
 		[Output, Stroke("green")]
-	public IndicatorDatas QuickMaResult
+	public IIndicatorDatas QuickMaResult
 		{
 			get; set;
 		}

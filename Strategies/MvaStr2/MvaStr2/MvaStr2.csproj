@@ -15,11 +15,11 @@
     <Reference Include="Microsoft.Maui.Graphics">
       <HintPath>..\..\..\..\Api\Microsoft.Maui.Graphics.dll</HintPath>
     </Reference>
-    <Reference Include="Neo.Api">
-      <HintPath>..\..\..\..\Api\Neo.Api.dll</HintPath>
+    <Reference Include="Sparks.Api">
+      <HintPath>..\..\..\..\Api\Sparks.Api.dll</HintPath>
     </Reference>
-    <Reference Include="Neo.Common">
-      <HintPath>..\..\..\..\Api\Neo.Common.dll</HintPath>
+    <Reference Include="Sparks.Common">
+      <HintPath>..\..\..\..\Api\Sparks.Common.dll</HintPath>
     </Reference>
   </ItemGroup>
 

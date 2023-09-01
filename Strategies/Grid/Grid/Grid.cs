@@ -5,10 +5,10 @@
 *********************************************************************/
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using Neo.Api;
-using Neo.Common;
+using Sparks.Api;
+using Sparks.Common;
 
-namespace Neo.Scripts.Custom
+namespace Sparks.Scripts.Custom
 {
 	[Strategy(Group = "Trends")]
 public class Grid : Strategy
