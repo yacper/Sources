@@ -6,9 +6,9 @@
 
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using Sparks.Api;
-using Sparks.Common;
-using RLib.Base;
+using Sparks.Trader.Api;
+using Sparks.Trader.Scripts;
+using Sparks.Utils;
 
 namespace Sparks.Scripts.Custom
 {

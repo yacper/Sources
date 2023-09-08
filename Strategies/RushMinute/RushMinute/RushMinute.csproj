@@ -15,14 +15,14 @@
     <Reference Include="Microsoft.Maui.Graphics">
       <HintPath>..\..\..\..\Api\Microsoft.Maui.Graphics.dll</HintPath>
     </Reference>
-    <Reference Include="Sparks.Api">
-      <HintPath>..\..\..\..\Api\Sparks.Api.dll</HintPath>
+    <Reference Include="Sparks.Trader.Api">
+      <HintPath>..\..\..\..\Api\Sparks.Trader.Api.dll</HintPath>
     </Reference>
-    <Reference Include="Sparks.Common">
-      <HintPath>..\..\..\..\Api\Sparks.Common.dll</HintPath>
+    <Reference Include="Sparks.Trader.Common">
+      <HintPath>..\..\..\..\Api\Sparks.Trader.Common.dll</HintPath>
     </Reference>
-      <Reference Include="RLib.Base">
-      <HintPath>..\..\..\..\Api\RLib.Base.dll</HintPath>
+      <Reference Include="Sparks.Utils">
+      <HintPath>..\..\..\..\Api\Sparks.Utils.dll</HintPath>
     </Reference>
   </ItemGroup>
 

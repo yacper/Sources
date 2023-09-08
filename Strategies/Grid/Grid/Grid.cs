@@ -5,8 +5,8 @@
 *********************************************************************/
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using Sparks.Api;
-using Sparks.Common;
+using Sparks.Trader.Api;
+using Sparks.Trader.Scripts;
 
 namespace Sparks.Scripts.Custom
 {

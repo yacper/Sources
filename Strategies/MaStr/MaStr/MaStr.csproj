@@ -12,14 +12,14 @@
 		<PackageReference Include="PropertyChanged.Fody" Version="3.4.1">
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
-		<Reference Include="Sparks.Api">
+		<Reference Include="Sparks.Trader.Api">
 			<HintPath>..\..\..\..\Api\Microsoft.Maui.Graphics.dll</HintPath>
 		</Reference>
-		<Reference Include="Sparks.Api">
-			<HintPath>..\..\..\..\Api\Sparks.Api.dll</HintPath>
+		<Reference Include="Sparks.Trader.Api">
+			<HintPath>..\..\..\..\Api\Sparks.Trader.Api.dll</HintPath>
 		</Reference>
-		<Reference Include="Sparks.Common">
-			<HintPath>..\..\..\..\Api\Sparks.Common.dll</HintPath>
+		<Reference Include="Sparks.Trader.Common">
+			<HintPath>..\..\..\..\Api\Sparks.Trader.Common.dll</HintPath>
 		</Reference>
 
 	</ItemGroup>
