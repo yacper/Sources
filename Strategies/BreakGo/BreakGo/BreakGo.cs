@@ -49,14 +49,14 @@ public class BreakGo : Strategy
         LongTrade_ = TradingAccount.Trades.FirstOrDefault(p => p.Code == Symbol.Code && p.Direction == ETradeDirection.Buy && p.Comment == Label);
         ShortTrade_ = TradingAccount.Trades.FirstOrDefault(p => p.Code == Symbol.Code && p.Direction == ETradeDirection.Sell && p.Comment == Label);
 
-        if ((source as Bars).Closes.CrossOver(Upper))
+        if ((source as IBars).Closes.CrossOver(Upper))
         {
             if (ShortTrade_ != null)
                 CloseTrade(ShortTrade_);
             if (LongTrade_ == null)
                 ExecuteMarketOrder(Symbol.Contract, ETradeDirection.Buy, Quantity, Label);
         }
-        else if ((source as Bars).Closes.CrossDown(Lower))
+        else if ((source as IBars).Closes.CrossDown(Lower))
         {
             if (LongTrade_ != null)
                 CloseTrade(LongTrade_);
