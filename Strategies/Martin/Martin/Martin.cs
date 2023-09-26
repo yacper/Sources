@@ -6,10 +6,14 @@
 
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Runtime.InteropServices.JavaScript;
 using Microsoft.Maui.Graphics;
 using Sparks.Trader.Api;
 using Sparks.Trader.Common;
+using Sparks.Trader.MarketData;
 using Sparks.Trader.Scripts;
+using Sparks.Trader.Symbols;
+using Sparks.Trader.Trading;
 using Sparks.Utils;
 
 namespace Sparks.Scripts.Custom
@@ -67,16 +71,15 @@ public class Martin : Strategy
         {
             ExecuteMarketOrder(Symbol.Contract, DateTime.Now.Ticks % 2 == 0 ? ETradeDirection.Buy : ETradeDirection.Sell, StartingQuantity,
                                Label(lastIndex + 1));
-            return;
         }
     }
 
 
     protected void ExecuteMarketOrder(SymbolContract contract, ETradeDirection dir, double quantity, string label = null)
     {
-        var oi = new MarketOrderReq(contract, dir, quantity)
+        var oi = new MarketOrderReq(contract, dir, Symbol.NormalizeLots(quantity), ETIF.GTC)
         {
-            Label = label
+            Label = label,
         };
 
         var ret = this.TradingAccount.PlaceOrder(oi, (e) =>
@@ -85,6 +88,8 @@ public class Martin : Strategy
             {
                 if (e.Trade != null) { MyAlert("Open", e.Trade.ToString()); }
             }
+            else
+                Error(e);
 
             Openning_ = false;
         });
@@ -143,7 +148,7 @@ public class TradeLabel
                 Index       = Convert.ToInt32(ss[2])
             };
         }
-        catch (Exception e) { }
+        catch{ }
 
         return null;
     }
