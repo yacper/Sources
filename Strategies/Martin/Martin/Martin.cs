@@ -1,7 +1,7 @@
-/********************************************************************
+﻿/********************************************************************
     created:	2017/4/14 15:14:23
     author:		rush
-    email:		
+    email:
 *********************************************************************/
 
 using System.ComponentModel;
@@ -10,13 +10,15 @@ using Microsoft.Maui.Graphics;
 using Sparks.Trader.Api;
 using Sparks.Trader.Common;
 using Sparks.Trader.Scripts;
+using Sparks.Utils;
 
 namespace Sparks.Scripts.Custom
 {
 [Strategy(Group = "Trends")]
 public class Martin : Strategy
 {
-#region 用户Paras
+    #region 用户Paras
+
     [Parameter, Description("初始数量"), DefaultValue(1)]
     public double StartingQuantity { get; set; }
 
@@ -31,14 +33,9 @@ public class Martin : Strategy
 
     [Parameter, Description("实例Id"), Range(0, int.MaxValue), DefaultValue(1399)]
     public int MagicNumber { get; set; }
+    #endregion
 
-
-#endregion
-
-    protected override void OnStart()
-    {
-    }
-
+    protected override void OnStart() { }
 
     protected override void OnData(ISource source, int index)
     {
@@ -48,27 +45,29 @@ public class Martin : Strategy
         if (OrderSending)
             return;
 
-        Trades = TradingAccount.Trades.Where(p => p.Code == Symbol.Code && p.Comment == Label)
-                               .ToList();
+        int lastIndex = 0;
+        var trades    = TradingAccount.Trades.Where(p => p.Code == Symbol.Code && p.Comment.StartsWith(MagicNumber.ToString())).ToList();
+        if (trades.Any())
+        {
+            var lastTrade = trades.OrderBy(p => p.OpenTime).Last();
+            try { lastIndex = TradeLabel.Parse(lastTrade.Comment).Index; }
+            catch (Exception e) { Error(e); }
 
-        // 随意开一个买卖单
-        if (!Trades.Any())
+            var plrange = trades.Sum(p => p.PLPips * Symbol.PointSize);
+
+            // takeprofit 所有
+            if (plrange >= TpRange)
+                trades.ForEach(p => CloseTrade(p));
+            else if (plrange < 0 && Math.Abs(lastTrade.OpenPrice - Bars.Closes.LastValue) >= OpenRange)
+            {
+                ExecuteMarketOrder(Symbol.Contract, lastTrade.Direction, StartingQuantity * Multiplier, Label(lastIndex + 1));
+            }
+        }
+        else // 随意开一个买卖单
         {
             ExecuteMarketOrder(Symbol.Contract, DateTime.Now.Ticks % 2 == 0 ? ETradeDirection.Buy : ETradeDirection.Sell, StartingQuantity,
-                               Label);
+                               Label(lastIndex + 1));
             return;
-        }
-
-        var plrange = Trades.Sum(p => p.PLPips * Symbol.PointSize);
-        var last    = Trades.OrderBy(p => p.OpenTime).Last();
-        LastIndex = last.Comment;
-
-            // tp 所有
-        if (plrange >= TpRange)
-            Trades.ForEach(p => CloseTrade(p));
-        else if (plrange < 0 && Math.Abs(last.OpenPrice - Bars.Closes.LastValue) >= OpenRange)
-        {
-            ExecuteMarketOrder(Symbol.Contract, last.Direction, StartingQuantity * Multiplier, Label(LastIndex));
         }
     }
 
@@ -84,19 +83,13 @@ public class Martin : Strategy
         {
             if (e.IsSuccessful)
             {
-                if (e.Trade != null)
-                {
-                    MyAlert("Open", e.Trade.ToString());
-                }
+                if (e.Trade != null) { MyAlert("Open", e.Trade.ToString()); }
             }
 
             Openning_ = false;
         });
 
-        if (ret.IsExecuting)
-        {
-            Openning_ = true;
-        }
+        if (ret.IsExecuting) { Openning_ = true; }
     }
 
     protected void CloseTrade(ITrade t)
@@ -111,18 +104,12 @@ public class Martin : Strategy
         };
         var ret = this.TradingAccount.PlaceOrder(oi, (e) =>
         {
-            if (e.IsSuccessful)
-            {
-                MyAlert("close", t.ToString());
-            }
+            if (e.IsSuccessful) { MyAlert("close", t.ToString()); }
 
             Closing_ = false;
         });
 
-        if (ret.IsExecuting)
-        {
-            Closing_ = true;
-        }
+        if (ret.IsExecuting) { Closing_ = true; }
     }
 
     protected void MyAlert(string title, string msg)
@@ -133,13 +120,36 @@ public class Martin : Strategy
         });
     }
 
-    protected string Label(int index) => $"[{MagicNumber}]{LongName}-{index}";
-    protected int    LastIndex = 1;
+    protected string Label(int index) => new TradeLabel() { MagicNumber = MagicNumber, LongName = LongName, Index = index }.ToString();
 
-    protected List<ITrade> Trades;
-    protected bool   Openning_;
-    protected bool   Closing_;
-    protected bool   OrderSending => Openning_ | Closing_;
+    protected bool Openning_;
+    protected bool Closing_;
+    protected bool OrderSending => Openning_ | Closing_;
+}
 
+public class TradeLabel
+{
+    public override string ToString() => $"{MagicNumber}-{LongName}-{Index}";
+
+    public static TradeLabel Parse(string s)
+    {
+        try
+        {
+            var ss = s.Split('-');
+            return new TradeLabel()
+            {
+                MagicNumber = Convert.ToInt32(ss[0]),
+                LongName    = ss[1],
+                Index       = Convert.ToInt32(ss[2])
+            };
+        }
+        catch (Exception e) { }
+
+        return null;
+    }
+
+    public int    MagicNumber { get; set; }
+    public string LongName    { get; set; }
+    public int    Index       { get; set; }
 }
 }
