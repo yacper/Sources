@@ -37,6 +37,13 @@ public class Martin : Strategy
 
     [Parameter, Description("实例Id"), Range(0, int.MaxValue), DefaultValue(1399)]
     public int MagicNumber { get; set; }
+
+    [Parameter]
+    public string Email { get; set; }
+
+    [Parameter]
+    public List<string> EmailCC{ get; set; }
+
     #endregion
 
     protected override void OnStart() { }
@@ -121,7 +128,9 @@ public class Martin : Strategy
     {
         Alert(title, msg, new AlertAction[]
         {
-            new PopupAlertAction(), new EmailAlertAction("469710114@qq.com")
+            new PopupAlertAction(), 
+            //new EmailAlertAction("469710114@qq.com")
+            new EmailAlertAction(Email, EmailCC)
         });
     }
 
