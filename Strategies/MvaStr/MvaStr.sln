@@ -3,18 +3,18 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.002.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MvaStr", "MvaStr.csproj", "{370ECABF-F8DE-4429-8BD4-57FA1E2D27BA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MvaStr", "MvaStr\MvaStr.csproj", "{8F1E87A0-BF4F-4BEC-893C-40DFE6B31D8D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
-		Release|Any CPU = Release|Any CPU
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{370ECABF-F8DE-4429-8BD4-57FA1E2D27BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{370ECABF-F8DE-4429-8BD4-57FA1E2D27BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{370ECABF-F8DE-4429-8BD4-57FA1E2D27BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{370ECABF-F8DE-4429-8BD4-57FA1E2D27BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8F1E87A0-BF4F-4BEC-893C-40DFE6B31D8D}.Debug|x64.ActiveCfg = Debug|x64
+		{8F1E87A0-BF4F-4BEC-893C-40DFE6B31D8D}.Debug|x64.Build.0 = Debug|x64
+		{8F1E87A0-BF4F-4BEC-893C-40DFE6B31D8D}.Release|x64.ActiveCfg = Release|x64
+		{8F1E87A0-BF4F-4BEC-893C-40DFE6B31D8D}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
