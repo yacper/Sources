@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<!--<TargetFramework>net7.0</TargetFramework>-->
+		<TargetFramework>net7.0-windows</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<EnablePreviewFeatures>true</EnablePreviewFeatures>
+		<UseWPF>true</UseWPF>
+		<Platforms>x64</Platforms>
+		<DebugType>embedded</DebugType>
+		<AssemblyName>Grid_IB</AssemblyName>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="PropertyChanged.Fody" Version="3.4.1">
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
+		<Reference Include="Sparks.Trader.Api">
+			<HintPath>..\..\..\..\Api\Sparks.Trader.Api.dll</HintPath>
+		</Reference>
+		<Reference Include="Sparks.Trader.Common">
+			<HintPath>..\..\..\..\Api\Sparks.Trader.Common.dll</HintPath>
+		</Reference>
+		<Reference Include="Microsoft.Maui.Graphics">
+			<HintPath>..\..\..\..\Api\Microsoft.Maui.Graphics.dll</HintPath>
+		</Reference>
+		<Reference Include="Sparks.Utils">
+			<HintPath>..\..\..\..\Api\Sparks.Utils.dll</HintPath>
+		</Reference>
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+	</ItemGroup>
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+		<Exec Command="move /y $(TargetPath) $(ProjectDir)..\..\" />
+	</Target>
+</Project>

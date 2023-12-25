@@ -23,7 +23,7 @@ public class MvaStr : Strategy
 			get; set;
 		}
 
-		[Parameter, Range(20, 200), DefaultValue(20)]
+		[Parameter, Range(20, 150), DefaultValue(20)]
 	public int SlowPeriods
 		{
 			get; set;
@@ -105,6 +105,8 @@ public class MvaStr : Strategy
 		{
 			var oi = new MarketOrderReq(contract, dir, quantity)
 			{
+				
+				
 				Label = label
 			};
 
