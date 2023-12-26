@@ -3,6 +3,12 @@
     author:		rush
     email:		适合IB账户的网格交易策略
                 Ib只有Postion，没有trade，所以需要自己记录持仓
+                buy, baseline=1900, step=10, steps=10 => 第一个单子1900，最后一个单子1990(tp:2000), [1900~1990]
+                sell, baseline=2000, step=10, steps=10 => 第一个单子2000，最后一个单子1910(tp:1900), [2000~1910]
+
+                
+                开单的同时，由于无法记录message，只能从自己的记录中找到对应的单子，不能从account的position中判断是否位置已经开单
+                这种情况下，使用marketOrder开单，到位置后，判断tp。
 *********************************************************************/
 
 using System.CodeDom;
@@ -12,6 +18,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Maui.Graphics;
+using Sparks.MVVM;
 using Sparks.Trader.Api;
 using Sparks.Trader.Common;
 using Sparks.Trader.Scripts;
@@ -19,11 +26,13 @@ using Sparks.Utils;
 
 namespace Sparks.Scripts.Custom
 {
-public class PositionRow
+public class PositionRow:ObservableObject
 {
-    public uint   Index       { get; set; }
-    public double Price       { get; set; }
-    public double Volume      { get; set; }
+    public int   Index  { get; set; }
+    public double Price  { get; set; }
+    public double Volume { get=>Volume_; set=>SetProperty(ref Volume_, value); }
+
+    protected double Volume_;
 }
 
 
@@ -61,17 +70,15 @@ public class Grid_IB : Strategy
 
 #endregion
 
-    protected string DescId=>$"{nameof(Grid_IB)}_{Magic}";
+    protected string DescId => $"{nameof(Grid_IB)}_{Magic}";
 
     protected string                            PositionFile => $"{DescId}.cfg";
-    public ObservableCollection<PositionRow> PositionLog  { get; protected set; }
+    public    ObservableCollection<PositionRow> PositionLog  { get; protected set; }
 
     public int LastSteps { get; protected set; } = 0;
 
     protected override void OnStart()
     {
-            Info("hello");
-
         // 检查参数
         if (Direction != ETradeDirection.Buy && Direction != ETradeDirection.Sell) { throw new ArgumentException("Direction must be Buy or Sell"); }
 
@@ -85,7 +92,7 @@ public class Grid_IB : Strategy
 
         DrawLines();
 
-        Window_       = new Window() { Title = $"{nameof(Grid_IB)}:{Symbol.Code}|{Chart.TimeFrame}", Width = 400, Height = 400 };
+        Window_ = new Window() { Title = $"{nameof(Grid_IB)}:{Symbol.Code}|{Chart.TimeFrame}", Width = 400, Height = 400 };
         //Window_.Owner = Application.Current.MainWindow;
 
         //DataGrid dg = new DataGrid();
@@ -111,53 +118,58 @@ public class Grid_IB : Strategy
         if (!IsHistoryOver)
             return;
 
-        IBar last = source[index] as IBar;
+        IBar   last      = source[index] as IBar;
+        double lastPrice = last.Close;
 
-        // 只判断开仓条件，平仓条件在takeprofit中
+        int steps = GetSteps(lastPrice);
+        // 如果之前平仓失败，防御性平仓
+        TryClosePosition(steps-1);
+        if (steps == LastSteps)
+            return;
+
+        Info($"Steps: {GetPriceLine(LastSteps)}[{LastSteps}] -> {GetPriceLine(steps)}[{steps}]");
+
+        // 
         if (Direction == ETradeDirection.Buy)
         {
             // 超越边界
-            if (last.Close >= BaseLine + Step * Steps ||
-                last.Close <= BaseLine - Step)
+            // last.Close >= BaseLine + Step * Steps ||     // 上边界
+            if (lastPrice <= BaseLine - Step)  // 下边界
                 return;
+          
 
-            int steps = (int)((last.Close - BaseLine) / Step);
-            // Print("•>[RGridEA.mq4:110]: steps: ", steps);
-            if (steps != LastSteps)
-            {
-                Info($"Steps: {GetPriceLine(LastSteps)}[{LastSteps}] -> {GetPriceLine(steps)}[{steps}]");
-                TryClosePosition(LastSteps);
-                LastSteps = steps;
-            }
+            //// 平仓条件
+            //if (steps > LastSteps)
+            //{// 向上移动
+            //    TryClosePosition(LastSteps);
+            //}
 
-            if (steps < 0)
-                return;
+            LastSteps = steps;
 
-            // 在当前价格两边各尝试开单
-            TryOpenOrder(steps);
-            TryOpenOrder(steps + 1);
+            // 开单条件
+            if (steps >= 0 && steps < Steps)
+                TryOpenOrder(steps);
         }
         else
         {
             // 超越边界
-            if (last.Close <= BaseLine - Step * Steps ||
-                last.Close >= BaseLine + Step)
+            if (//last.Close <= BaseLine - Step * Steps ||
+                lastPrice >= BaseLine + Step // 上边界
+                )
                 return;
 
-            int steps = (int)((BaseLine - last.Close) / Step);
-            if (steps != LastSteps)
-            {
-                Info($"Steps: {GetPriceLine(LastSteps)}[{LastSteps}] -> {GetPriceLine(steps)}[{steps}]");
-                TryClosePosition(LastSteps);
-                LastSteps = steps;
-            }
+            //// 平仓条件
+            //if(steps < LastSteps)
+            //{
+            //    TryClosePosition(LastSteps);
+            //}
 
-            if (steps < 0)
-                return;
+            LastSteps = steps;
 
-            TryOpenOrder(steps);
-            TryOpenOrder(steps + 1);
-        }
+            // 开单条件
+            if (steps >= 0 && steps < Steps)
+                TryOpenOrder(steps);
+         }
     }
 
     double GetPriceLine(int steps)
@@ -174,36 +186,47 @@ public class Grid_IB : Strategy
         }
     }
 
+    int GetSteps(double price)
+    {
+        if (Direction == ETradeDirection.Buy)
+        {
+            return (int)((price - BaseLine) / Step);
+        }
+        else
+        {
+            return (int)((BaseLine - price) / Step);
+        }
+    }
+
+
+
     void TryOpenOrder(int steps) // 在nstep处，尝试开单
     {
         // 不能超越steps
-        if (steps >= Steps || steps <0)
+        if (steps >= Steps || steps < 0)
+            return;
+
+        if (LongSending_)
             return;
 
         double price = GetPriceLine(steps);
-        // Print("•>[RGridEA.mq4:171]: price: ", price);
-        if (!HasOrderByPriceLine(price)) // 该位置还未开单
+        if (!HasPositionByPriceLine(price)) // 该位置还未开单
         {
             if (CheckCanOpenOrder()) // 可以新开单
             {
-                ExecuteLimitOrder(Symbol.Contract, Direction, GetPriceLine(steps), BaseLot);
+                ExecuteOrder(Symbol.Contract, Direction, price, BaseLot, steps);
             }
         }
     }
+
     void TryClosePosition(int steps) // 在nstep处，尝试平单
     {
-        // 不能超越steps
-        if (steps >= Steps || steps <0)
-            return;
-
         double price = GetPriceLine(steps);
-        // Print("•>[RGridEA.mq4:171]: price: ", price);
         if (HasPositionByPriceLine(price)) // 该位置有持仓
         {
-            ClosePosition(Symbol.Contract, Direction, PositionLog.FirstOrDefault(p=>p.Price.NearlyEqual(GetPriceLine(steps))).Volume);
+            ClosePosition(Symbol.Contract, Direction, PositionLog.FirstOrDefault(p => p.Price.NearlyEqual(GetPriceLine(steps))).Volume, steps);
         }
     }
-
 
 
     bool HasOrderByPriceLine(double price)
@@ -211,11 +234,11 @@ public class Grid_IB : Strategy
         return TradingAccount.PendingOrders.Any(p => p.Price.NearlyEqual(price) && p.Direction == Direction);
         //return PositionLog.Any(p => p.Price.NearlyEqual(price));
     }
+
     bool HasPositionByPriceLine(double price)
     {
-        return PositionLog.Any(p => p.Price.NearlyEqual(price) && p.Volume>0);
+        return PositionLog.Any(p => p.Price.NearlyEqual(price) && p.Volume > 0);
     }
-
 
 
     void DrawLines()
@@ -230,7 +253,7 @@ public class Grid_IB : Strategy
         {
             double price = BaseLine + step * i;
             var    name  = $"Line_{price}";
-            var line = Chart.MainArea.DrawHorizontalLine(name, price, GridStroke);
+            var    line  = Chart.MainArea.DrawHorizontalLine(name, price, GridStroke);
             line.IsLocked = true;
         }
     }
@@ -249,11 +272,8 @@ public class Grid_IB : Strategy
 
     internal void LoadPositionLog()
     {
-        try
-        {
-            PositionLog = PositionFile.FileToJsonObj<ObservableCollection<PositionRow>>();
-        }
-        catch  { }
+        try { PositionLog = PositionFile.FileToJsonObj<ObservableCollection<PositionRow>>(); }
+        catch { }
 
         if (PositionLog == null)
             PositionLog = new ObservableCollection<PositionRow>();
@@ -262,18 +282,16 @@ public class Grid_IB : Strategy
     internal void SavePositionLog() { PositionLog.ToJsonFile(PositionFile); }
 
     // 检查订单数
-    protected bool CheckCanOpenOrder()
-    {
-        return PositionLog.Count(p=>!p.Volume.NearlyEqual(0)) < MaxOrder;
-    }
+    protected bool CheckCanOpenOrder() { return PositionLog.Count(p => !p.Volume.NearlyEqual(0)) < MaxOrder; }
 
     private Window Window_;
 
 #region trading
 
-    protected void ExecuteLimitOrder(SymbolContract contract, ETradeDirection dir, double price, double quantity)
+    protected void ExecuteOrder(SymbolContract contract, ETradeDirection dir, double price, double quantity, int steps)
     {
-        var oi = new LimitOrderReq(contract, dir, price, quantity)
+        //var oi = new LimitOrderReq(contract, dir, price, quantity)
+        var oi = new MarketOrderReq(contract, dir, quantity)
         {
         };
 
@@ -281,14 +299,30 @@ public class Grid_IB : Strategy
         {
             if (e.IsSuccessful)
             {
-                if (e.Trade != null)
+                var row = PositionLog.FirstOrDefault(p => p.Index == steps);
+                if (row == null)
                 {
-                    MyAlert($"{DescId} Open", e.Trade.ToString());
-                    if (e.Trade.Direction == ETradeDirection.Buy)
-                        LongTrade_ = e.Trade;
-                    else
-                        ShortTrade_ = e.Trade;
+                    row = new PositionRow() { Index = steps, Price = price, Volume = quantity };
+                    PositionLog.Add(row);
                 }
+                else
+                {
+                    row.Price = price;
+                    row.Volume += quantity;
+                }
+
+                if (e.Order != null)
+                {
+
+                }
+                //if (e.Trade != null)
+                //{
+                //    MyAlert($"{DescId} Open", e.Trade.ToString());
+                //    if (e.Trade.Direction == ETradeDirection.Buy)
+                //        LongTrade_ = e.Trade;
+                //    else
+                //        ShortTrade_ = e.Trade;
+                //}
             }
 
             if (dir == ETradeDirection.Buy)
@@ -306,18 +340,30 @@ public class Grid_IB : Strategy
         }
     }
 
-    protected void ClosePosition(SymbolContract contract, ETradeDirection dir, double quantity)
+    protected void ClosePosition(SymbolContract contract, ETradeDirection dir, double quantity, int steps)
     {
+        // 正在发送，返回
+        if (LongClosing_ || ShortClosing_)
+            return;
+
         var oi = new MarketOrderReq(contract, dir.Reverse(), quantity)
         {
             //CloseTradeId = t.Id,
-            OpenClose    = EOpenClose.Close
+            OpenClose = EOpenClose.Close
         };
         var ret = this.TradingAccount.PlaceOrder(oi, (e) =>
         {
             if (e.IsSuccessful)
             {
                 MyAlert($"${DescId} Close", $"Close {contract.Code} {quantity}@Market");
+
+                var row = PositionLog.FirstOrDefault(p => p.Index == steps);
+                if (row != null)
+                {
+                    row.Volume -= quantity;
+                    if (row.Volume.NearlyEqual(0))
+                        PositionLog.Remove(row);
+                }
             }
 
             if (dir == ETradeDirection.Buy)
@@ -338,13 +384,14 @@ public class Grid_IB : Strategy
 
     protected void MyAlert(string title, string msg)
     {
+        return;
         Alert(title, msg, new AlertAction[]
         {
             new PopupAlertAction(), new EmailAlertAction("469710114@qq.com")
         });
     }
 
-    protected string Label => LongName + Id;
+//    protected string Label => LongName + Id;
 
     protected ITrade LongTrade_;
     protected bool   LongSending_;
@@ -356,6 +403,5 @@ public class Grid_IB : Strategy
     protected bool OrderSending => LongSending_ | LongClosing_ | ShortClosing_ | ShortSending_;
 
 #endregion
-
 }
 }
