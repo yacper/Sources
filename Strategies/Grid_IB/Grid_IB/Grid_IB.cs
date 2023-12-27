@@ -59,6 +59,9 @@ public class Grid_IB : Strategy
     [Parameter, DefaultValue(1900)]
     public double BaseLine { get; set; }
 
+    [Parameter, DefaultValue(0.5)]
+    public double Tolerance { get; set; }
+
     [Parameter, DefaultValue(10)]
     public double Step { get; set; }
 
@@ -122,54 +125,59 @@ public class Grid_IB : Strategy
         double lastPrice = last.Close;
 
         int steps = GetSteps(lastPrice);
-        // 如果之前平仓失败，防御性平仓
-        TryClosePosition(steps-1);
-        if (steps == LastSteps)
-            return;
 
-        Info($"Steps: {GetPriceLine(LastSteps)}[{LastSteps}] -> {GetPriceLine(steps)}[{steps}]");
+        if (steps != LastSteps)
+        {
+            Info($"Steps change({lastPrice}): {GetPriceLine(LastSteps)}[{LastSteps}] -> {GetPriceLine(steps)}[{steps}]");
+            LastSteps = steps;
+        }
+
+        // 如果之前平仓失败，防御性平仓
+        TryClosePosition(steps - 1);
+
+        //之前开仓可能失败，防御性开仓
+        TryOpenOrder(steps, lastPrice);
 
         // 
-        if (Direction == ETradeDirection.Buy)
-        {
-            // 超越边界
-            // last.Close >= BaseLine + Step * Steps ||     // 上边界
-            if (lastPrice <= BaseLine - Step)  // 下边界
-                return;
+        //if (Direction == ETradeDirection.Buy)
+        //{
+        //    // 超越边界
+        //    // last.Close >= BaseLine + Step * Steps ||     // 上边界
+        //    if (lastPrice <= BaseLine - Step)  // 下边界
+        //        return;
           
 
-            //// 平仓条件
-            //if (steps > LastSteps)
-            //{// 向上移动
-            //    TryClosePosition(LastSteps);
-            //}
+        //    //// 平仓条件
+        //    //if (steps > LastSteps)
+        //    //{// 向上移动
+        //    //    TryClosePosition(LastSteps);
+        //    //}
 
-            LastSteps = steps;
 
-            // 开单条件
-            if (steps >= 0 && steps < Steps)
-                TryOpenOrder(steps);
-        }
-        else
-        {
-            // 超越边界
-            if (//last.Close <= BaseLine - Step * Steps ||
-                lastPrice >= BaseLine + Step // 上边界
-                )
-                return;
+        //    // 开单条件
+        //    if (steps >= 0 && steps < Steps)
+        //        TryOpenOrder(steps);
+        //}
+        //else
+        //{
+        //    // 超越边界
+        //    if (//last.Close <= BaseLine - Step * Steps ||
+        //        lastPrice >= BaseLine + Step // 上边界
+        //        )
+        //        return;
 
-            //// 平仓条件
-            //if(steps < LastSteps)
-            //{
-            //    TryClosePosition(LastSteps);
-            //}
+        //    //// 平仓条件
+        //    //if(steps < LastSteps)
+        //    //{
+        //    //    TryClosePosition(LastSteps);
+        //    //}
 
-            LastSteps = steps;
+        //    LastSteps = steps;
 
-            // 开单条件
-            if (steps >= 0 && steps < Steps)
-                TryOpenOrder(steps);
-         }
+        //    // 开单条件
+        //    if (steps >= 0 && steps < Steps)
+        //        TryOpenOrder(steps);
+        // }
     }
 
     double GetPriceLine(int steps)
@@ -199,28 +207,44 @@ public class Grid_IB : Strategy
     }
 
 
-
-    void TryOpenOrder(int steps) // 在nstep处，尝试开单
+    void TryOpenOrder(int steps, double price) // 在nstep处，尝试开单
     {
         // 不能超越steps
         if (steps >= Steps || steps < 0)
             return;
 
-        if (LongSending_)
+        // 单子正在发送
+        if (LongSending_|ShortSending_)
             return;
 
-        double price = GetPriceLine(steps);
-        if (!HasPositionByPriceLine(price)) // 该位置还未开单
+        // 检查是否在线的误差范围内，超过太多就不开单
+        double priceLine = GetPriceLine(steps);
+        if (Direction == ETradeDirection.Buy)
+        {
+            if (price > priceLine && price - priceLine > Tolerance)
+                return;
+        }
+        else
+        {
+            if (price < priceLine && priceLine - price < Tolerance)
+                return;
+        }
+
+        if (!HasPositionByPriceLine(priceLine)) // 该位置还未开单
         {
             if (CheckCanOpenOrder()) // 可以新开单
             {
-                ExecuteOrder(Symbol.Contract, Direction, price, BaseLot, steps);
+                EntryOrder(Symbol.Contract, Direction, price, BaseLot, steps);
             }
         }
     }
 
     void TryClosePosition(int steps) // 在nstep处，尝试平单
     {
+        // 单子正在发送
+        if (LongClosing_|ShortClosing_)
+            return;
+
         double price = GetPriceLine(steps);
         if (HasPositionByPriceLine(price)) // 该位置有持仓
         {
@@ -249,7 +273,7 @@ public class Grid_IB : Strategy
         else
             step = -Step;
 
-        for (int i = 0; i != Steps; ++i)
+        for (int i = 0; i <= Steps; ++i)
         {
             double price = BaseLine + step * i;
             var    name  = $"Line_{price}";
@@ -288,8 +312,9 @@ public class Grid_IB : Strategy
 
 #region trading
 
-    protected void ExecuteOrder(SymbolContract contract, ETradeDirection dir, double price, double quantity, int steps)
+    protected void EntryOrder(SymbolContract contract, ETradeDirection dir, double price, double quantity, int steps)
     {
+        Info($"EntryOrder {contract.Code} {quantity}@{price}[{steps}]");
         //var oi = new LimitOrderReq(contract, dir, price, quantity)
         var oi = new MarketOrderReq(contract, dir, quantity)
         {
@@ -298,16 +323,17 @@ public class Grid_IB : Strategy
         var ret = this.TradingAccount.PlaceOrder(oi, (e) =>
         {
             if (e.IsSuccessful)
-            {
+            {// 由于使用marketOrder，成功就以为着开仓了
                 var row = PositionLog.FirstOrDefault(p => p.Index == steps);
+                var priceLine = GetPriceLine(steps);
                 if (row == null)
                 {
-                    row = new PositionRow() { Index = steps, Price = price, Volume = quantity };
+                    row = new PositionRow() { Index = steps, Price = priceLine, Volume = quantity };
                     PositionLog.Add(row);
                 }
                 else
                 {
-                    row.Price = price;
+                    row.Price = priceLine;
                     row.Volume += quantity;
                 }
 
@@ -342,10 +368,7 @@ public class Grid_IB : Strategy
 
     protected void ClosePosition(SymbolContract contract, ETradeDirection dir, double quantity, int steps)
     {
-        // 正在发送，返回
-        if (LongClosing_ || ShortClosing_)
-            return;
-
+        Info($"ClosePosition {contract.Code} {quantity}@{GetPriceLine(steps)}[{steps}]");
         var oi = new MarketOrderReq(contract, dir.Reverse(), quantity)
         {
             //CloseTradeId = t.Id,
