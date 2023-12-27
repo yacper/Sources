@@ -37,5 +37,16 @@ namespace Sparks.Scripts.Custom
         {
             (DataContext as Grid_IB).SavePositionLog();
         }
+
+        private void ClosePosition(object sender, RoutedEventArgs e)
+        {
+            PositionRow row = PositionLogGrid.SelectedValue as PositionRow;
+            if (row == null)
+                return;
+
+            (DataContext as Grid_IB).TryClosePosition(row.Index);
+        }
+
+
     }
 }

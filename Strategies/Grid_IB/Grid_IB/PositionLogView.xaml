@@ -23,6 +23,7 @@
                 <TextBlock Text="{Binding Path=LastSteps}" />
             </StackPanel>
             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="关闭Position" Click="ClosePosition" />
                 <Button Content="加载PositionLog" Click="LoadPosition" />
                 <Button Content="保存PositionLog" Click="SavePosition" />
             </StackPanel>

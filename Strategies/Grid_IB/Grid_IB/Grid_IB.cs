@@ -239,7 +239,7 @@ public class Grid_IB : Strategy
         }
     }
 
-    void TryClosePosition(int steps) // 在nstep处，尝试平单
+    internal void TryClosePosition(int steps) // 在nstep处，尝试平单
     {
         // 单子正在发送
         if (LongClosing_|ShortClosing_)
