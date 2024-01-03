@@ -44,7 +44,7 @@ namespace Sparks.Scripts.Custom
             if (row == null)
                 return;
 
-            (DataContext as Grid_IB).TryClosePosition(row.Index);
+            (DataContext as Grid_IB).TryClosePosition(row.Price);
         }
 
 

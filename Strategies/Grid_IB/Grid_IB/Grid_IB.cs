@@ -20,6 +20,7 @@ using System.Windows.Controls;
 using Microsoft.Maui.Graphics;
 using Sparks.MVVM;
 using Sparks.Trader.Api;
+using Sparks.Trader.Charts;
 using Sparks.Trader.Common;
 using Sparks.Trader.Scripts;
 using Sparks.Utils;
@@ -28,7 +29,7 @@ namespace Sparks.Scripts.Custom
 {
 public class PositionRow:ObservableObject
 {
-    public int   Index  { get; set; }
+    public int   Index  { get; set; }   // 仅用于查看，不用于任何逻辑
     public double Price  { get; set; }
     public double Volume { get=>Volume_; set=>SetProperty(ref Volume_, value); }
 
@@ -135,7 +136,7 @@ public class Grid_IB : Strategy
         }
 
         // 如果之前平仓失败，防御性平仓
-        TryClosePosition(steps - 1);
+        TryClosePosition(GetPriceLine(steps - 1));
 
         //之前开仓可能失败，防御性开仓
         TryOpenOrder(steps, lastPrice);
@@ -247,16 +248,16 @@ public class Grid_IB : Strategy
         }
     }
 
-    internal void TryClosePosition(int steps) // 在nstep处，尝试平单
+    internal void TryClosePosition(double priceLine) // 在价格线处平仓
     {
         // 单子正在发送
         if (LongClosing_|ShortClosing_)
             return;
 
-        double price = GetPriceLine(steps);
-        if (HasPositionByPriceLine(price)) // 该位置有持仓
+        int steps = GetSteps(priceLine);
+        if (HasPositionByPriceLine(priceLine)) // 该位置有持仓
         {
-            ClosePosition(Symbol.Contract, Direction, PositionLog.FirstOrDefault(p => p.Price.NearlyEqual(GetPriceLine(steps))).Volume, steps);
+            ClosePosition(Symbol.Contract, Direction, PositionLog.FirstOrDefault(p => p.Price.NearlyEqual(GetPriceLine(steps))).Volume, priceLine);
         }
     }
 
@@ -304,7 +305,23 @@ public class Grid_IB : Strategy
 
     internal void LoadPositionLog()
     {
-        try { PositionLog = PositionFile.FileToJsonObj<ObservableCollection<PositionRow>>(); }
+        try
+        {
+            //var poses = PositionFile.FileToJsonObj<List<PositionRow>>();
+            //PositionLog = new ObservableCollection<PositionRow>();
+
+            //// 由于baseline可能被修改，所以要更新对应的index
+            //foreach (var pos in poses)
+            //{
+            //    PositionLog.Add(new PositionRow()
+            //    {
+            //        Index  = GetSteps(pos.Price),
+            //        Price  = pos.Price,
+            //        Volume = pos.Volume
+            //    });
+            //}
+            PositionLog = PositionFile.FileToJsonObj<ObservableCollection<PositionRow>>();
+        }
         catch { }
 
         if (PositionLog == null)
@@ -322,7 +339,7 @@ public class Grid_IB : Strategy
 
     protected void EntryOrder(SymbolContract contract, ETradeDirection dir, double price, double quantity, int steps)
     {
-        Info($"EntryOrder {contract.Code} {quantity}@{price}[{steps}]");
+        Info($"EntryOrder {contract.Code} {quantity}@{price}[{steps}]...");
         //var oi = new LimitOrderReq(contract, dir, price, quantity)
         var oi = new MarketOrderReq(contract, dir, quantity)
         {
@@ -332,8 +349,8 @@ public class Grid_IB : Strategy
         {
             if (e.IsSuccessful)
             {// 由于使用marketOrder，成功就以为着开仓了
-                var row = PositionLog.FirstOrDefault(p => p.Index == steps);
                 var priceLine = GetPriceLine(steps);
+                var row = PositionLog.FirstOrDefault(p => p.Price.NearlyEqual(priceLine));
                 if (row == null)
                 {
                     row = new PositionRow() { Index = steps, Price = priceLine, Volume = quantity };
@@ -357,10 +374,16 @@ public class Grid_IB : Strategy
                 //    else
                 //        ShortTrade_ = e.Trade;
                 //}
+
+                var msg = $"EntryOrder {contract.Code} {quantity}@{price}[{steps}] Succeeded.";
+                Info(msg);
+                MyAlert($"${DescId} EntryOrder Succeeded", msg);
             }
             else//失败
             {
-                Error($"EntryOrder {contract.Code} {quantity}@{price}[{steps}] Failed:{e.ToString()}");
+                var msg = $"EntryOrder {contract.Code} {quantity}@{price}[{steps}] Failed:{e.ToString()}";
+                Error(msg);
+                MyAlert($"${DescId} EntryOrder Failed", msg);
             }
 
             UpdateSummary();
@@ -380,9 +403,9 @@ public class Grid_IB : Strategy
         }
     }
 
-    protected void ClosePosition(SymbolContract contract, ETradeDirection dir, double quantity, int steps)
+    protected void ClosePosition(SymbolContract contract, ETradeDirection dir, double quantity, double priceLine)
     {
-        Info($"ClosePosition {contract.Code} {quantity}@{GetPriceLine(steps)}[{steps}]");
+        Info($"ClosePosition {contract.Code} {quantity}@{priceLine}[{GetSteps(priceLine)}]...");
         var oi = new MarketOrderReq(contract, dir.Reverse(), quantity)
         {
             //CloseTradeId = t.Id,
@@ -392,19 +415,24 @@ public class Grid_IB : Strategy
         {
             if (e.IsSuccessful)
             {
-                MyAlert($"${DescId} Close", $"Close {contract.Code} {quantity}@Market");
 
-                var row = PositionLog.FirstOrDefault(p => p.Index == steps);
+                var row = PositionLog.FirstOrDefault(p => p.Price.NearlyEqual(priceLine));
                 if (row != null)
                 {
                     row.Volume -= quantity;
                     if (row.Volume.NearlyEqual(0))
                         PositionLog.Remove(row);
                 }
+
+                var msg = $"ClosePosition {contract.Code} {quantity}@{priceLine}[{GetSteps(priceLine)}] Succeeded.";
+                Info(msg);
+                MyAlert($"${DescId} Close Succeeded", msg);
             }
             else//失败
             {
-                Error($"ClosePosition {contract.Code} {quantity}@{GetPriceLine(steps)}[{steps}] Failed:{e.ToString()}");
+                var msg =$"ClosePosition {contract.Code} {quantity}@{priceLine}[{GetSteps(priceLine)}] Failed:{e.ToString()}.";
+                Error(msg);
+                MyAlert($"${DescId} Close Failed", msg);
             }
 
             UpdateSummary();
