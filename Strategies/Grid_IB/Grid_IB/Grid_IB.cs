@@ -80,6 +80,8 @@ public class Grid_IB : Strategy
 
     public int LastSteps { get; protected set; } = 0;
 
+    public string Summary { get; protected set; }
+
     protected override void OnStart()
     {
         // 检查参数
@@ -138,6 +140,7 @@ public class Grid_IB : Strategy
         //之前开仓可能失败，防御性开仓
         TryOpenOrder(steps, lastPrice);
 
+        UpdateSummary();
         // 
         //if (Direction == ETradeDirection.Buy)
         //{
@@ -145,7 +148,7 @@ public class Grid_IB : Strategy
         //    // last.Close >= BaseLine + Step * Steps ||     // 上边界
         //    if (lastPrice <= BaseLine - Step)  // 下边界
         //        return;
-          
+
 
         //    //// 平仓条件
         //    //if (steps > LastSteps)
@@ -178,6 +181,11 @@ public class Grid_IB : Strategy
         //    if (steps >= 0 && steps < Steps)
         //        TryOpenOrder(steps);
         // }
+    }
+
+    protected void UpdateSummary()
+    {
+        Summary = $"Positions:{PositionLog.Sum(p => p.Volume)}[{PositionLog.Count}] LastSteps:{LastSteps}";
     }
 
     double GetPriceLine(int steps)
@@ -350,6 +358,12 @@ public class Grid_IB : Strategy
                 //        ShortTrade_ = e.Trade;
                 //}
             }
+            else//失败
+            {
+                Error($"EntryOrder {contract.Code} {quantity}@{price}[{steps}] Failed:{e.ToString()}");
+            }
+
+            UpdateSummary();
 
             if (dir == ETradeDirection.Buy)
                 LongSending_ = false;
@@ -388,6 +402,12 @@ public class Grid_IB : Strategy
                         PositionLog.Remove(row);
                 }
             }
+            else//失败
+            {
+                Error($"ClosePosition {contract.Code} {quantity}@{GetPriceLine(steps)}[{steps}] Failed:{e.ToString()}");
+            }
+
+            UpdateSummary();
 
             if (dir == ETradeDirection.Buy)
                 LongClosing_ = false;

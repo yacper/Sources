@@ -19,8 +19,8 @@
                 <ColumnDefinition Width="*"></ColumnDefinition>
             </Grid.ColumnDefinitions>
             <StackPanel Orientation="Horizontal">
-                <TextBlock Text="Steps:" />
-                <TextBlock Text="{Binding Path=LastSteps}" />
+                <!--<TextBlock Text="Steps:" />-->
+                <TextBlock Text="{Binding Path=Summary}" />
             </StackPanel>
             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button Content="关闭Position" Click="ClosePosition" />
