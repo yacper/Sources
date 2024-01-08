@@ -366,6 +366,7 @@ public class Grid_IB : Strategy
         {
             var priceLine = GetPriceLine(steps);
             var row       = PositionLog.FirstOrDefault(p => p.Price.NearlyEqual(priceLine));
+            var requestOrderId = e.RequestIds.FirstOrDefault();
 
             if (e.IsSuccessful)
             {
@@ -392,13 +393,12 @@ public class Grid_IB : Strategy
                 //        ShortTrade_ = e.Trade;
                 //}
 
-                var msg = $"EntryOrder {contract.Code} {quantity}@{price}[{steps}] Succeeded.";
+                var msg = $"EntryOrder[{requestOrderId}] {contract.Code} {quantity}@{price}[{steps}] Succeeded.";
                 Warn(msg);
                 MyAlert($"${DescId} EntryOrder Succeeded", msg);
             }
             else //失败
             {
-                var requestOrderId = e.RequestIds.FirstOrDefault();
                 var msg       = $"EntryOrder[{requestOrderId}] {contract.Code} {quantity}@{price}[{steps}] Failed: {e.ToString()}";
                 Error(msg);
                 MyAlert($"${DescId} EntryOrder Failed", msg);
@@ -453,6 +453,7 @@ public class Grid_IB : Strategy
         {
             var row   = PositionLog.FirstOrDefault(p => p.Price.NearlyEqual(priceLine));
             var index = GetSteps(priceLine);
+            var requestOrderId = e.RequestIds.FirstOrDefault();
             if (e.IsSuccessful)
             {
                 if (row != null)
@@ -463,13 +464,12 @@ public class Grid_IB : Strategy
                         PositionLog.Remove(row);
                 }
 
-                var msg = $"ClosePosition {contract.Code} {quantity}@{priceLine}[{GetSteps(priceLine)}] Succeeded.";
+                var msg = $"ClosePosition[{requestOrderId}] {contract.Code} {quantity}@{priceLine}[{GetSteps(priceLine)}] Succeeded.";
                 Warn(msg);
                 MyAlert($"${DescId} Close Succeeded", msg);
             }
             else //失败
             {
-                var requestOrderId = e.RequestIds.FirstOrDefault();
                 var msg = $"ClosePosition[{requestOrderId}] {contract.Code} {quantity}@{priceLine}[{GetSteps(priceLine)}] Failed: {e.ToString()}.";
                 Error(msg);
                 MyAlert($"${DescId} Close Failed", msg);
