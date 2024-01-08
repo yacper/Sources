@@ -26,6 +26,8 @@
 			<HintPath>..\..\..\..\Api\Sparks.Utils.dll</HintPath>
 		</Reference>
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+
+		<PackageReference Include="NPOI" Version="2.6.1" />
 	</ItemGroup>
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
 		<Exec Command="move /y $(TargetPath) $(ProjectDir)..\..\" />

@@ -6,34 +6,39 @@
                 buy, baseline=1900, step=10, steps=10 => 第一个单子1900，最后一个单子1990(tp:2000), [1900~1990]
                 sell, baseline=2000, step=10, steps=10 => 第一个单子2000，最后一个单子1910(tp:1900), [2000~1910]
 
-                
+
                 开单的同时，由于无法记录message，只能从自己的记录中找到对应的单子，不能从account的position中判断是否位置已经开单
                 这种情况下，使用marketOrder开单，到位置后，判断tp。
+
+                另外，针对ib的情况，必须考虑PlaceOrder timeout的情况，如果timeout，可能是已经成功了，所以要额外挂载事件
 *********************************************************************/
 
-using System.CodeDom;
+//using System.CodeDom;
+//using System.Collections.ObjectModel;
+
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
+//using System.ComponentModel.DataAnnotations;
 using System.Windows;
-using System.Windows.Controls;
-using Microsoft.Maui.Graphics;
+//using System.Windows.Controls;
+//using Microsoft.Maui.Graphics;
 using Sparks.MVVM;
 using Sparks.Trader.Api;
-using Sparks.Trader.Charts;
-using Sparks.Trader.Common;
+//using Sparks.Trader.BackTesting;
+//using Sparks.Trader.Charts;
+//using Sparks.Trader.Common;
 using Sparks.Trader.Scripts;
 using Sparks.Utils;
 
 namespace Sparks.Scripts.Custom
 {
-public class PositionRow:ObservableObject
+public class PositionRow : ObservableObject
 {
-    public int   Index  { get; set; }   // 仅用于查看，不用于任何逻辑
-    public double Price  { get; set; }
-    public double Volume { get=>Volume_; set=>SetProperty(ref Volume_, value); }
-
-    protected double Volume_;
+    public int    Index              { get; set; } // 仅用于查看，不用于任何逻辑
+    public double Price              { get; set; }
+    public double Volume             { get; set; }
+    public string OpenClientOrderId  { get; set; } // 未回复的开单orderid
+    public string CloseClientOrderId { get; set; } // 未回复的平单orderid
 }
 
 
@@ -96,21 +101,33 @@ public class Grid_IB : Strategy
         // 读取持仓记录
         LoadPositionLog();
 
+        if (!CheckPositionsFit())
+            //throw new Exception($"Positions Not Fit"); 
+            ;
+
+
         DrawLines();
 
-        Window_ = new Window() { Title = $"{nameof(Grid_IB)}:{Symbol.Code}|{Chart.TimeFrame}", Width = 400, Height = 400 };
-        //Window_.Owner = Application.Current.MainWindow;
+        // 挂载order事件
+        TradingAccount.PendingOrders.Added += PendingOrders_Added;
+   
 
-        //DataGrid dg = new DataGrid();
-        //dg.ItemsSource  = PositionLog;
+#region UI 不能在回测中使用
+        if (Runtime == ERuntime.Live | Runtime == ERuntime.Editing)
+        {
+            Window_ = new Window() { Title = $"{nameof(Grid_IB)}:{Symbol.Code}|{Chart.TimeFrame}", Width = 400, Height = 400 };
+            //Window_.Owner = Application.Current.MainWindow;
 
-        var view = new PositionLogView(this);
+            var view = new PositionLogView(this);
 
-        Window_.Content = view;
-        Window_.Show();
+            Window_.Content = view;
+            Window_.Show();
+        }
+#endregion
     }
 
-    protected override void OnStop()
+
+        protected override void OnStop()
     {
         Window_?.Hide();
         Window_?.Close();
@@ -184,10 +201,7 @@ public class Grid_IB : Strategy
         // }
     }
 
-    protected void UpdateSummary()
-    {
-        Summary = $"Positions:{PositionLog.Sum(p => p.Volume)}[{PositionLog.Count}] LastSteps:{LastSteps}";
-    }
+    protected void UpdateSummary() { Summary = $"Positions:{PositionLog.Sum(p => p.Volume)}[{PositionLog.Count}] LastSteps:{LastSteps}"; }
 
     double GetPriceLine(int steps)
     {
@@ -205,14 +219,8 @@ public class Grid_IB : Strategy
 
     int GetSteps(double price)
     {
-        if (Direction == ETradeDirection.Buy)
-        {
-            return (int)((price - BaseLine) / Step);
-        }
-        else
-        {
-            return (int)((BaseLine - price) / Step);
-        }
+        if (Direction == ETradeDirection.Buy) { return (int)((price - BaseLine) / Step); }
+        else { return (int)((BaseLine - price) / Step); }
     }
 
 
@@ -223,8 +231,13 @@ public class Grid_IB : Strategy
             return;
 
         // 单子正在发送
-        if (LongSending_|ShortSending_)
+        if (LongSending_ | ShortSending_)
             return;
+
+        // 已有单子，只是timeout了，等待回复
+        if (HasOrderByPriceLine(price, true))
+            return;
+
 
         // 检查是否在线的误差范围内，超过太多就不开单
         double priceLine = GetPriceLine(steps);
@@ -251,7 +264,11 @@ public class Grid_IB : Strategy
     internal void TryClosePosition(double priceLine) // 在价格线处平仓
     {
         // 单子正在发送
-        if (LongClosing_|ShortClosing_)
+        if (LongClosing_ | ShortClosing_)
+            return;
+
+        // 已有单子，只是timeout了，等待回复
+        if (HasOrderByPriceLine(priceLine, false))
             return;
 
         int steps = GetSteps(priceLine);
@@ -262,16 +279,16 @@ public class Grid_IB : Strategy
     }
 
 
-    bool HasOrderByPriceLine(double price)
+    bool HasOrderByPriceLine(double price, bool open = true)
     {
-        return TradingAccount.PendingOrders.Any(p => p.Price.NearlyEqual(price) && p.Direction == Direction);
-        //return PositionLog.Any(p => p.Price.NearlyEqual(price));
+        //return TradingAccount.PendingOrders.Any(p => p.Price.NearlyEqual(price) && p.Direction == Direction);
+        if(open)
+            return PositionLog.Any(p => p.Price.NearlyEqual(price) && !p.OpenClientOrderId.IsNullOrEmpty());
+        else
+            return PositionLog.Any(p => p.Price.NearlyEqual(price) && !p.CloseClientOrderId.IsNullOrEmpty());
     }
 
-    bool HasPositionByPriceLine(double price)
-    {
-        return PositionLog.Any(p => p.Price.NearlyEqual(price) && p.Volume > 0);
-    }
+    bool HasPositionByPriceLine(double price) { return PositionLog.Any(p => p.Price.NearlyEqual(price) && p.Volume > 0); }
 
 
     void DrawLines()
@@ -339,7 +356,7 @@ public class Grid_IB : Strategy
 
     protected void EntryOrder(SymbolContract contract, ETradeDirection dir, double price, double quantity, int steps)
     {
-        Info($"EntryOrder {contract.Code} {quantity}@{price}[{steps}]...");
+        Warn($"EntryOrder {contract.Code} {quantity}@{price}[{steps}]...");
         //var oi = new LimitOrderReq(contract, dir, price, quantity)
         var oi = new MarketOrderReq(contract, dir, quantity)
         {
@@ -347,10 +364,12 @@ public class Grid_IB : Strategy
 
         var ret = this.TradingAccount.PlaceOrder(oi, (e) =>
         {
+            var priceLine = GetPriceLine(steps);
+            var row       = PositionLog.FirstOrDefault(p => p.Price.NearlyEqual(priceLine));
+
             if (e.IsSuccessful)
-            {// 由于使用marketOrder，成功就以为着开仓了
-                var priceLine = GetPriceLine(steps);
-                var row = PositionLog.FirstOrDefault(p => p.Price.NearlyEqual(priceLine));
+            {
+                // 由于使用marketOrder，成功就意味着开仓了
                 if (row == null)
                 {
                     row = new PositionRow() { Index = steps, Price = priceLine, Volume = quantity };
@@ -358,14 +377,12 @@ public class Grid_IB : Strategy
                 }
                 else
                 {
-                    row.Price = priceLine;
+                    row.Index  =  steps;
+                    row.Price  =  priceLine;
                     row.Volume += quantity;
                 }
 
-                if (e.Order != null)
-                {
-
-                }
+                if (e.Order != null) { }
                 //if (e.Trade != null)
                 //{
                 //    MyAlert($"{DescId} Open", e.Trade.ToString());
@@ -376,17 +393,38 @@ public class Grid_IB : Strategy
                 //}
 
                 var msg = $"EntryOrder {contract.Code} {quantity}@{price}[{steps}] Succeeded.";
-                Info(msg);
+                Warn(msg);
                 MyAlert($"${DescId} EntryOrder Succeeded", msg);
             }
-            else//失败
+            else //失败
             {
-                var msg = $"EntryOrder {contract.Code} {quantity}@{price}[{steps}] Failed:{e.ToString()}";
+                var requestOrderId = e.RequestIds.FirstOrDefault();
+                var msg       = $"EntryOrder[{requestOrderId}] {contract.Code} {quantity}@{price}[{steps}] Failed: {e.ToString()}";
                 Error(msg);
                 MyAlert($"${DescId} EntryOrder Failed", msg);
+
+
+                // entry失败，如果是timeout，可能是已经成功了，所以要检查一下
+                if (e.ErrorCode == ETradeErrorCode.Timeout)
+                {
+                    if (row == null)
+                    {
+                        row = new PositionRow() { Index = steps, Price = priceLine, Volume = 0 };   // 开仓失败，volume记录为0
+                        PositionLog.Add(row);
+                    }
+                    else
+                    {
+                        row.Index  =  steps;
+                        //row.Volume += quantity;
+                    }
+
+                    // 记录open order ic
+                    row.OpenClientOrderId = requestOrderId;
+                }
             }
 
             UpdateSummary();
+            SavePositionLog();
 
             if (dir == ETradeDirection.Buy)
                 LongSending_ = false;
@@ -405,7 +443,7 @@ public class Grid_IB : Strategy
 
     protected void ClosePosition(SymbolContract contract, ETradeDirection dir, double quantity, double priceLine)
     {
-        Info($"ClosePosition {contract.Code} {quantity}@{priceLine}[{GetSteps(priceLine)}]...");
+        Warn($"ClosePosition {contract.Code} {quantity}@{priceLine}[{GetSteps(priceLine)}]...");
         var oi = new MarketOrderReq(contract, dir.Reverse(), quantity)
         {
             //CloseTradeId = t.Id,
@@ -413,29 +451,43 @@ public class Grid_IB : Strategy
         };
         var ret = this.TradingAccount.PlaceOrder(oi, (e) =>
         {
+            var row   = PositionLog.FirstOrDefault(p => p.Price.NearlyEqual(priceLine));
+            var index = GetSteps(priceLine);
             if (e.IsSuccessful)
             {
-
-                var row = PositionLog.FirstOrDefault(p => p.Price.NearlyEqual(priceLine));
                 if (row != null)
                 {
+                    row.Index  =  GetSteps(priceLine);
                     row.Volume -= quantity;
-                    if (row.Volume.NearlyEqual(0))
+                    if (row.Volume.NearlyEqual(0) && row.OpenClientOrderId.IsNullOrEmpty())
                         PositionLog.Remove(row);
                 }
 
                 var msg = $"ClosePosition {contract.Code} {quantity}@{priceLine}[{GetSteps(priceLine)}] Succeeded.";
-                Info(msg);
+                Warn(msg);
                 MyAlert($"${DescId} Close Succeeded", msg);
             }
-            else//失败
+            else //失败
             {
-                var msg =$"ClosePosition {contract.Code} {quantity}@{priceLine}[{GetSteps(priceLine)}] Failed:{e.ToString()}.";
+                var requestOrderId = e.RequestIds.FirstOrDefault();
+                var msg = $"ClosePosition[{requestOrderId}] {contract.Code} {quantity}@{priceLine}[{GetSteps(priceLine)}] Failed: {e.ToString()}.";
                 Error(msg);
                 MyAlert($"${DescId} Close Failed", msg);
+
+                // close失败，如果是timeout，可能是已经close了，所以要检查一下
+                if (e.ErrorCode == ETradeErrorCode.Timeout)
+                {
+                    {
+                        row.Index = index;
+                    }
+
+                    // 记录open order ic
+                    row.CloseClientOrderId = requestOrderId;
+                }
             }
 
             UpdateSummary();
+            SavePositionLog();
 
             if (dir == ETradeDirection.Buy)
                 LongClosing_ = false;
@@ -452,8 +504,63 @@ public class Grid_IB : Strategy
         }
     }
 
+    // 检查positionLog记录是否同tradingAccount一致
+    protected bool CheckPositionsFit()
+    {
+        IPosition p            = TradingAccount.Positions.FirstOrDefault(p => p.Symbol == Symbol);
+        double    sysPosVolume = p?.Lots ?? 0;
+        double    logPosVolume = PositionLog.Sum(p => p.Volume);
+        if (!logPosVolume.NearlyEqual(sysPosVolume))
+        {
+            var msg = $"当前记录的Position({logPosVolume}) != 系统Position({sysPosVolume})";
+            Error(msg);
+            return false;
+        }
 
-    protected void MyAlert(string title, string msg)
+        return true;
+    }
+
+    private void PendingOrders_Added(object sender, IEnumerable<IOrder> e)
+    {
+        // 有未回复的订单
+        if (!HasTimeoutOrder())
+            return;
+
+        foreach (var o in e)
+        {
+            {// timeout 开仓单
+                var row = PositionLog.FirstOrDefault(p => p.OpenClientOrderId == o.LocalId);
+                if (row != null)
+                {
+                    row.Volume            += o.OriginalLots;
+                    row.OpenClientOrderId =  null;
+                    Warn($"Time out Open order Excecuted:{o}");
+                }
+            }
+            {// timeout 平仓单
+                var row = PositionLog.FirstOrDefault(p => p.CloseClientOrderId == o.LocalId);
+                if (row != null)
+                {
+                    row.Volume            -= o.OriginalLots;
+                    row.CloseClientOrderId =  null;
+
+                    if (row.Volume.NearlyEqual(0) && row.OpenClientOrderId.IsNullOrEmpty())
+                        PositionLog.Remove(row);
+
+                    Warn($"Time out close order Excecuted:{o}");
+                }
+            }
+        }
+    }
+
+    // 还有未回复的订单（ib tws api特有的问题，回复有的时候特别慢）
+    protected bool HasTimeoutOrder()
+    {
+        return PositionLog.Any(p => !p.OpenClientOrderId.IsNullOrEmpty()  || !p.CloseClientOrderId.IsNullOrEmpty());
+    }
+
+
+    protected void MyAlert(string title, string msg )
     {
         return;
         Alert(title, msg, new AlertAction[]
@@ -462,7 +569,8 @@ public class Grid_IB : Strategy
         });
     }
 
-//    protected string Label => LongName + Id;
+    //    protected string Label => LongName + Id;
+    protected bool PositionFit => CheckPositionsFit();
 
     protected ITrade LongTrade_;
     protected bool   LongSending_;
