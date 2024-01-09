@@ -366,6 +366,24 @@ public class Grid_IB : Strategy
         {
         };
 
+        {// sending...
+            var priceLine = GetPriceLine(steps);
+            var row       = PositionLog.FirstOrDefault(p => p.Price.NearlyEqual(priceLine));
+
+            if (row == null)
+            {
+                row = new PositionRow() { Index = steps, Price = priceLine, Volume = 0, OpenClientOrderId = "Sending..."};
+                PositionLog.Add(row);
+            }
+            else
+            {
+                row.Index  =  steps;
+                row.Price  =  priceLine;
+                //row.Volume += quantity;
+                row.OpenClientOrderId = "Sending...";
+            }
+        }
+
         var ret = this.TradingAccount.PlaceOrder(oi, (e) =>
         {
             var priceLine = GetPriceLine(steps);
@@ -386,6 +404,8 @@ public class Grid_IB : Strategy
                     row.Price  =  priceLine;
                     row.Volume += quantity;
                 }
+
+                row.OpenClientOrderId = null;
 
                 if (e.Order != null) { }
                 //if (e.Trade != null)
@@ -453,6 +473,24 @@ public class Grid_IB : Strategy
             //CloseTradeId = t.Id,
             OpenClose = EOpenClose.Close
         };
+
+        {// sending
+            var row       = PositionLog.FirstOrDefault(p => p.Price.NearlyEqual(priceLine));
+            var steps = GetSteps(priceLine);
+            if (row == null)
+            {
+                row = new PositionRow() { Index = steps, Price = priceLine, Volume = 0, CloseClientOrderId = "Sending..." };
+                PositionLog.Add(row);
+            }
+            else
+            {
+                row.Index = steps;
+                row.Price = priceLine;
+                //row.Volume += quantity;
+                row.CloseClientOrderId = "Sending...";
+            }
+        }
+
         var ret = this.TradingAccount.PlaceOrder(oi, (e) =>
         {
             var row   = PositionLog.FirstOrDefault(p => p.Price.NearlyEqual(priceLine));
@@ -464,6 +502,7 @@ public class Grid_IB : Strategy
                 {
                     row.Index  =  GetSteps(priceLine);
                     row.Volume -= quantity;
+                    row.OpenClientOrderId = null;
                     if (row.Volume.NearlyEqual(0) && row.OpenClientOrderId.IsNullOrEmpty())
                         PositionLog.Remove(row);
                 }
