@@ -144,6 +144,11 @@ public class Grid_IB : Strategy
         IBar   last      = source[index] as IBar;
         double lastPrice = last.Close;
 
+        // 是否交易时段
+        if(Symbol.TradingHours != null && !Symbol.TradingHours.IsOpened(last.Time))
+            return;
+
+
         int steps = GetSteps(lastPrice);
 
         if (steps != LastSteps)
@@ -271,10 +276,9 @@ public class Grid_IB : Strategy
         if (HasOrderByPriceLine(priceLine, false))
             return;
 
-        int steps = GetSteps(priceLine);
         if (HasPositionByPriceLine(priceLine)) // 该位置有持仓
         {
-            ClosePosition(Symbol.Contract, Direction, PositionLog.FirstOrDefault(p => p.Price.NearlyEqual(GetPriceLine(steps))).Volume, priceLine);
+            ClosePosition(Symbol.Contract, Direction, PositionLog.FirstOrDefault(p => p.Price.NearlyEqual(priceLine)).Volume, priceLine);
         }
     }
 
@@ -532,22 +536,39 @@ public class Grid_IB : Strategy
                 var row = PositionLog.FirstOrDefault(p => p.OpenClientOrderId == o.LocalId);
                 if (row != null)
                 {
-                    row.Volume            += o.OriginalLots;
-                    row.OpenClientOrderId =  null;
-                    Warn($"Time out Open order Excecuted:{o}");
+                    if (o.Status == EOrderStatus.Rejected || o.Status == EOrderStatus.CanceledAll || o.Status == EOrderStatus.CanceledPartial || o.Status == EOrderStatus.Expired|| o.Status == EOrderStatus.Inactive)
+                    {
+                        row.OpenClientOrderId =  null;
+                        Warn($"[{o.LocalId}]Time out Open order failed:{o}");
+                    }
+                    else
+                    {
+                        row.Volume            += o.OriginalLots;
+                        row.OpenClientOrderId =  null;
+                        Warn($"[{o.LocalId}]Time out Open order Executed:{o}");
+                    }
                 }
             }
             {// timeout 平仓单
                 var row = PositionLog.FirstOrDefault(p => p.CloseClientOrderId == o.LocalId);
                 if (row != null)
                 {
-                    row.Volume            -= o.OriginalLots;
-                    row.CloseClientOrderId =  null;
+                    if (o.Status == EOrderStatus.Rejected || o.Status == EOrderStatus.CanceledAll || o.Status == EOrderStatus.CanceledPartial || o.Status == EOrderStatus.Expired|| o.Status == EOrderStatus.Inactive)
+                    {
+                        row.CloseClientOrderId =  null;
+                        Warn($"[{o.LocalId}]Time out close order failed:{o}");
+                    }
+                    else
+                    {
+                        row.Volume             -= o.OriginalLots;
+                        row.CloseClientOrderId =  null;
 
-                    if (row.Volume.NearlyEqual(0) && row.OpenClientOrderId.IsNullOrEmpty())
-                        PositionLog.Remove(row);
+                        if (row.Volume.NearlyEqual(0) && row.OpenClientOrderId.IsNullOrEmpty())
+                            PositionLog.Remove(row);
 
-                    Warn($"Time out close order Excecuted:{o}");
+                        Warn($"[{o.LocalId}]Time out close order Executed:{o}");
+                    }
+
                 }
             }
         }
