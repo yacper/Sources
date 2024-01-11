@@ -239,13 +239,14 @@ public class Grid_IB : Strategy
         if (LongSending_ | ShortSending_)
             return;
 
+        double priceLine = GetPriceLine(steps);
+
         // 已有单子，只是timeout了，等待回复
-        if (HasOrderByPriceLine(price, true))
+        if (HasOrderByPriceLine(priceLine, true))
             return;
 
 
         // 检查是否在线的误差范围内，超过太多就不开单
-        double priceLine = GetPriceLine(steps);
         if (Direction == ETradeDirection.Buy)
         {
             if (price > priceLine && price - priceLine > Tolerance)
