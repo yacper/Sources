@@ -254,7 +254,7 @@ public class Grid_IB : Strategy
         }
         else
         {
-            if (price < priceLine && priceLine - price < Tolerance)
+            if (price < priceLine && priceLine - price > Tolerance)
                 return;
         }
 
@@ -446,6 +446,11 @@ public class Grid_IB : Strategy
                     // 记录open order ic
                     row.OpenClientOrderId = requestOrderId;
                 }
+                else// 开仓彻底失败
+                {
+                    if (row.Volume.NearlyEqual(0))
+                        PositionLog.Remove(row);
+                }
             }
 
             UpdateSummary();
@@ -503,7 +508,7 @@ public class Grid_IB : Strategy
                 {
                     row.Index  =  GetSteps(priceLine);
                     row.Volume -= quantity;
-                    row.OpenClientOrderId = null;
+                    row.CloseClientOrderId = null;
                     if (row.Volume.NearlyEqual(0) && row.OpenClientOrderId.IsNullOrEmpty())
                         PositionLog.Remove(row);
                 }
@@ -521,12 +526,19 @@ public class Grid_IB : Strategy
                 // close失败，如果是timeout，可能是已经close了，所以要检查一下
                 if (e.ErrorCode == ETradeErrorCode.Timeout)
                 {
+                    if(row !=null)
                     {
                         row.Index = index;
                     }
 
                     // 记录open order ic
-                    row.CloseClientOrderId = requestOrderId;
+                    if(row !=null)
+                        row.CloseClientOrderId = requestOrderId;
+                }
+                else // 开仓彻底失败
+                {
+                    if (row != null)
+                        row.CloseClientOrderId = null;
                 }
             }
 
