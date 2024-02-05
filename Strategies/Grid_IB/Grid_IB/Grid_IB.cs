@@ -363,10 +363,7 @@ public class Grid_IB : Strategy
     {
         Warn($"EntryOrder {contract.Code} {quantity}@{price}[{steps}]...");
         //var oi = new LimitOrderReq(contract, dir, price, quantity)
-        var oi = new MarketOrderReq(contract, dir, quantity)
-        {
-        };
-
+        var oi = OrderReq.MakeMarketOrder(contract, dir, quantity);
         {// sending...
             var priceLine = GetPriceLine(steps);
             var row       = PositionLog.FirstOrDefault(p => p.Price.NearlyEqual(priceLine));
@@ -474,11 +471,8 @@ public class Grid_IB : Strategy
     protected void ClosePosition(SymbolContract contract, ETradeDirection dir, double quantity, double priceLine)
     {
         Warn($"ClosePosition {contract.Code} {quantity}@{priceLine}[{GetSteps(priceLine)}]...");
-        var oi = new MarketOrderReq(contract, dir.Reverse(), quantity)
-        {
-            //CloseTradeId = t.Id,
-            OpenClose = EOpenClose.Close
-        };
+        var oi = OrderReq.MakeMarketOrder(contract, dir.Reverse(), quantity);
+        //oi.OpenClose = EOpenClose.Close;
 
         {// sending
             var row       = PositionLog.FirstOrDefault(p => p.Price.NearlyEqual(priceLine));
