@@ -81,7 +81,7 @@ public class Grid_IB : Strategy
 
     protected string DescId => $"{nameof(Grid_IB)}_{Magic}";
 
-    protected string                            PositionFile => $"{DescId}.cfg";
+    protected string                            PositionFile => $"{UserDataPath.CombinePath(DescId+".cfg")}";
     public    ObservableCollection<PositionRow> PositionLog  { get; protected set; }
 
     public int LastSteps { get; protected set; } = 0;
@@ -204,6 +204,7 @@ public class Grid_IB : Strategy
         //    if (steps >= 0 && steps < Steps)
         //        TryOpenOrder(steps);
         // }
+		Performance();
     }
 
     protected void UpdateSummary() { Summary = $"Positions:{PositionLog.Sum(p => p.Volume)}[{PositionLog.Count}] LastSteps:{LastSteps}"; }
@@ -362,10 +363,6 @@ public class Grid_IB : Strategy
     protected void EntryOrder(SymbolContract contract, ETradeDirection dir, double price, double quantity, int steps)
     {
         Warn($"EntryOrder {contract.Code} {quantity}@{price}[{steps}]...");
-        //var oi = new LimitOrderReq(contract, dir, price, quantity)
-        var oi = new MarketOrderReq(contract, dir, quantity)
-        {
-        };
 
         {// sending...
             var priceLine = GetPriceLine(steps);
@@ -385,7 +382,7 @@ public class Grid_IB : Strategy
             }
         }
 
-        var ret = this.TradingAccount.PlaceOrder(oi, (e) =>
+        var ret = this.TradingAccount.PlaceMarketOrder(contract, dir, quantity, callback:(e) =>
         {
             var priceLine = GetPriceLine(steps);
             var row       = PositionLog.FirstOrDefault(p => p.Price.NearlyEqual(priceLine));
@@ -497,7 +494,7 @@ public class Grid_IB : Strategy
             }
         }
 
-        var ret = this.TradingAccount.PlaceOrder(oi, (e) =>
+        var ret = this.TradingAccount.PlaceMarketOrder(contract, dir.Reverse(), quantity, callback:(e) =>
         {
             var row   = PositionLog.FirstOrDefault(p => p.Price.NearlyEqual(priceLine));
             var index = GetSteps(priceLine);
