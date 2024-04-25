@@ -5,8 +5,8 @@
     <EnablePreviewFeatures>true</EnablePreviewFeatures>
     <Platforms>x64</Platforms>
     <AssemblyName>SamplePlaceOrder</AssemblyName>
-
-		<DebugType>embedded</DebugType>
+    <DebugType>embedded</DebugType>
+    <TargetExt>.spx</TargetExt>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="PropertyChanged.Fody" Version="3.4.1">
@@ -25,8 +25,7 @@
       <HintPath>..\..\..\..\Api\Sparks.Utils.dll</HintPath>
     </Reference>
   </ItemGroup>
-
-	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-		<Exec Command="move /y $(TargetPath) $(ProjectDir)..\..\" />
-	</Target>
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="move /y %22$(TargetPath)%22 %22$(ProjectDir)..\..\%22" />
+  </Target>
 </Project>
