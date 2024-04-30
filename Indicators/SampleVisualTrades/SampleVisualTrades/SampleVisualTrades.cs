@@ -10,6 +10,7 @@ namespace Sparks.Scripts.Custom
     [Indicator(Group = "Custom")]
     public class SampleVisualTrades : Indicator
     {
+		
         protected override void OnStart()
         {
             if(TradingAccount == null)

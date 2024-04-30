@@ -11,7 +11,6 @@ namespace Sparks.Scripts.Custom
 public class SampleDoubleMaStg : Strategy
 {
 #region 用户Paras
-
     // 快速均线周期参数
     [Parameter, Range(1, 100), DefaultValue(5)]
     public int QuickPeriods { get; set; }

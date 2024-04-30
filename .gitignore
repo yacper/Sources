@@ -23,3 +23,4 @@ Strategies/*.pdb
 
 #.vscode
 *.spx
+FodyWeavers.xsd
