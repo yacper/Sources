@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.Maui.Graphics;
 using Sparks.Trader.Api;
@@ -13,7 +13,7 @@ public class SampleMultipleMA : Indicator
 {
 #region 用户参数
     [Parameter, Display(Name = "Source")]
-    public IDatas Source { get; set; }
+    public IDataSeries Source { get; set; }
 
     [Parameter, Display(Name = "MaType"), DefaultValue(EMaType.Simple)]
     public EMaType MaType { get; set; }
@@ -29,13 +29,13 @@ public class SampleMultipleMA : Indicator
 
 
     [Output, Display(Name = "Result1"), Stroke("green")]
-    public IIndicatorDatas Result1 { get; set; }
+    public IIndicatorDataSeries Result1 { get; set; }
 
     [Output, Stroke("blue")]
-    public IIndicatorDatas Result2 { get; set; }
+    public IIndicatorDataSeries Result2 { get; set; }
 
     [Output, Stroke("red")]
-    public IIndicatorDatas Result3 { get; set; }
+    public IIndicatorDataSeries Result3 { get; set; }
 #endregion
 
 

@@ -360,7 +360,7 @@ public class Grid_IB : Strategy
 
 #region trading
 
-    protected void EntryOrder(SymbolContract contract, ETradeDirection dir, double price, double quantity, int steps)
+    protected void EntryOrder(Contract contract, ETradeDirection dir, double price, double quantity, int steps)
     {
         Warn($"EntryOrder {contract.Code} {quantity}@{price}[{steps}]...");
 
@@ -468,7 +468,7 @@ public class Grid_IB : Strategy
         }
     }
 
-    protected void ClosePosition(SymbolContract contract, ETradeDirection dir, double quantity, double priceLine)
+    protected void ClosePosition(Contract contract, ETradeDirection dir, double quantity, double priceLine)
     {
         Warn($"ClosePosition {contract.Code} {quantity}@{priceLine}[{GetSteps(priceLine)}]...");
         var oi = new MarketOrderReq(contract, dir.Reverse(), quantity)

@@ -16,10 +16,10 @@ public class SampleAtr : Indicator
     public int Periods { get; set; }
 
     [Output, PlotType(EPlotType.Columns),Display(GroupName = "Style")]
-    public IIndicatorDatas TR { get; set; }
+    public IIndicatorDataSeries TR { get; set; }
 
     [Output,Display(GroupName = "Style"), Stroke("#9ACCFF")]
-    public IIndicatorDatas Result { get; set; }
+    public IIndicatorDataSeries Result { get; set; }
 
 #endregion
 

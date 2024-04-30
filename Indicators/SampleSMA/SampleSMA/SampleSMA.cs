@@ -20,7 +20,7 @@ public class SampleSMA : Indicator
     /// DefaultValue("Closes"), 默认值数据源为IBars的Closes
     /// </summary>
     [Parameter, Display(Name = "Source", GroupName = "Calc"), DefaultValue("Closes")]
-    public IDatas Source { get; set; } 
+    public IDataSeries Source { get; set; } 
 
     /// <summary>
     /// 指标中使用的周期数
@@ -34,7 +34,7 @@ public class SampleSMA : Indicator
     /// 指标输出结果绘制线
     /// </summary>
     [Output, Display(Name = "Result", GroupName = "Out"), Stroke("#b667c5")]
-    public IIndicatorDatas Result { get;  set; }
+    public IIndicatorDataSeries Result { get;  set; }
 
 #endregion
     /// <summary>

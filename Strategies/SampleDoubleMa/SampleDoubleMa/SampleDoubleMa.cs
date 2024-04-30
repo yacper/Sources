@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.Maui.Graphics;
 using Sparks.Trader.Api;
@@ -8,7 +8,7 @@ using Sparks.Trader.Scripts;
 namespace Sparks.Scripts.Custom
 {
 [Strategy(Group = "Samples")]
-public class SampleDoubleMaStg : Strategy
+public class SampleDoubleMa : Strategy
 {
 #region 用户Paras
     // 快速均线周期参数
@@ -25,11 +25,11 @@ public class SampleDoubleMaStg : Strategy
 
     // 快速均线输出
     [Output, Stroke("green")]
-    public IIndicatorDatas QuickMaResult { get; set; }
+    public IIndicatorDataSeries QuickMaResult { get; set; }
 
     // 慢速速均线输出
     [Output, Stroke("blue")]
-    public IIndicatorDatas SlowMaResult { get; set; }
+    public IIndicatorDataSeries SlowMaResult { get; set; }
 
 #endregion
 

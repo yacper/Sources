@@ -6,7 +6,7 @@
     <Platforms>x64</Platforms>
     <DebugType>embedded</DebugType>
     <TargetExt>.spx</TargetExt>
-    <AssemblyName>SampleDoubleMaStg</AssemblyName>
+    <AssemblyName>SampleDoubleMa</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="PropertyChanged.Fody" Version="3.4.1">

@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.Maui.Graphics;
 using Sparks.Trader.Api;
@@ -12,13 +12,13 @@ namespace Sparks.Scripts.Custom
     {
         #region 用户参数
         [Parameter, Display(Name = "Source")]
-        public IDatas Source { get; set; }
+        public IDataSeries Source { get; set; }
 
         [Parameter, Display(Name = "Periods"), Range(1, int.MaxValue), DefaultValue(7)]
         public int Periods { get; set; }
 
         [Output, Stroke("#b667c5")]
-        public IIndicatorDatas Result { get; set; }
+        public IIndicatorDataSeries Result { get; set; }
 
         #endregion
 

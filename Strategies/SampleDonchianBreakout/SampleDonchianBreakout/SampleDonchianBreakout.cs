@@ -1,4 +1,4 @@
-﻿/// Dochian Channel的简单突破策略，处理订单时，针对两种类型的交易通道做了不同的处理：
+/// Dochian Channel的简单突破策略，处理订单时，针对两种类型的交易通道做了不同的处理：
 ///     对于像外汇平台这种有Trade的，直接通过Trade操作，在回测中，也是这种情况
 ///     对于IB这种没有Trade的，通过Order配合Position操作
 
@@ -28,13 +28,13 @@ namespace Sparks.Scripts.Custom
         public Fill FillBackground { get; set; }
 
         [Output, Display(Name = "上轨", GroupName = "Style"), Stroke("#2962FF")]
-        public IIndicatorDatas ULine { get; set; }
+        public IIndicatorDataSeries ULine { get; set; }
 
         [Output, Display(Name = "中轨", GroupName = "Style"), Stroke("#88FF6D00")]
-        public IIndicatorDatas MLine { get; set; }
+        public IIndicatorDataSeries MLine { get; set; }
 
         [Output, Display(Name = "下轨", GroupName = "Style"), Stroke("#2962FF")]
-        public IIndicatorDatas LLine { get; set; }
+        public IIndicatorDataSeries LLine { get; set; }
 
         #endregion
 

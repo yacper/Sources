@@ -1,4 +1,4 @@
-﻿/*
+/*
 由Michael Chalek在20世纪80年代开发的Dual Thrust策略是一个非常经典的趋势跟踪策略，是常年排在国外前10大流行策略之一，
 曾被《Future Trust》杂志评为最赚钱的策略之一。Dual Thrust系统策略十分简单，思路简明，但正所谓大道至简，该策略适用于股票、期货、外汇等多类型市场，
 如果配合上良好的资金管理和策略择时，可以为投资者带来长期稳定的收益。
@@ -94,10 +94,10 @@ namespace Sparks.Scripts.Custom
         public Fill FillBackground { get; set; }
 
         [Output, Display(Name = "上轨", GroupName = "Style"), Stroke("#2962FF")]
-        public IIndicatorDatas ULine { get; set; }
+        public IIndicatorDataSeries ULine { get; set; }
 
         [Output, Display(Name = "下轨", GroupName = "Style"), Stroke("#2962FF")]
-        public IIndicatorDatas LLine { get; set; }
+        public IIndicatorDataSeries LLine { get; set; }
         #endregion
 
         protected override void OnStart()
