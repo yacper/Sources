@@ -1,4 +1,7 @@
-﻿using System.ComponentModel;
+﻿// 枢轴点指标
+// 枢轴点的用法有多种，该指标主要计算了日线级别的关键点位，然后在
+// https://zhuanlan.zhihu.com/p/164500867
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.Maui.Graphics;
 using Sparks.Trader.Api;
@@ -13,8 +16,15 @@ public class Pivot : Indicator
 {
     protected override void OnStart()
     {
-        IBar b = Bars.FirstOrDefault();
+        if (TimeFrame >= ETimeFrame.D1)
+        {
+            Warn("该指标应该作用于小于D1的时间框架下");
+            Stop();
+            return;
+        }
 
+        // 获取日线数据
+        IBar b = Bars.FirstOrDefault();
         DayBars = GetBars(Contract, ETimeFrame.D1, b.Time.Date.AddDays(-5));
     }
 
@@ -26,7 +36,6 @@ public class Pivot : Indicator
             return;
 
         IBar bar = Bars[index];
-
 
         // 前一天的数据
         var dt    = bar.Time;
