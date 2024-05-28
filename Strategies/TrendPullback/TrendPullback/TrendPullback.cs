@@ -46,10 +46,10 @@ public class TrendPullback : Strategy
 
 
     [Output, Stroke("#b667c5")]
-    public IIndicatorDatas DcUpper { get; set; }
+    public IIndicatorDataSeries DcUpper { get; set; }
 
     [Output, Stroke("#b667c5")]
-    public IIndicatorDatas DcLower { get; set; }
+    public IIndicatorDataSeries DcLower { get; set; }
 #endregion
 
     protected override void OnStart()

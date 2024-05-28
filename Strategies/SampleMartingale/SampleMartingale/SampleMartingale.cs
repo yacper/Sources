@@ -1,4 +1,4 @@
-// 该策略可以在模拟账户上运行，回测暂时不支持子订单（takeprofit/stoploss）
+﻿// 该策略可以在模拟账户上运行，回测暂时不支持子订单（takeprofit/stoploss）
 
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;

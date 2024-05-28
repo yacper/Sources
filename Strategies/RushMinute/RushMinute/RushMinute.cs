@@ -86,13 +86,13 @@ namespace Sparks.Scripts.Custom
 
 
 		[Output, Stroke("#b667c5")]
-	public IIndicatorDatas DcUpper
+	public IIndicatorDataSeries DcUpper
 		{
 			get; set;
 		}
 
 		[Output, Stroke("#b667c5")]
-	public IIndicatorDatas DcLower
+	public IIndicatorDataSeries DcLower
 		{
 			get; set;
 		}

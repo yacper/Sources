@@ -9,7 +9,6 @@
     <AssemblyName>SampleReferenceTalib</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Atypical.TechnicalAnalysis.Functions" Version="0.0.0-alpha.0.173" />
     <PackageReference Include="PropertyChanged.Fody" Version="3.4.1">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -24,6 +23,12 @@
     </Reference>
     <Reference Include="Sparks.Utils">
       <HintPath>..\..\..\..\Api\Sparks.Utils.dll</HintPath>
+    </Reference>
+    <Reference Include="TechnicalAnalysis.Candles">
+	    <HintPath>..\..\..\..\Api\TechnicalAnalysis.Candles.dll</HintPath>
+    </Reference>
+    <Reference Include="TechnicalAnalysis.Functions">
+	    <HintPath>..\..\..\..\Api\TechnicalAnalysis.Functions.dll</HintPath>
     </Reference>
   </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">

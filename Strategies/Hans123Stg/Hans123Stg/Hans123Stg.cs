@@ -34,16 +34,16 @@ public class Hans123Stg : Strategy
 
 
     [Output, Stroke("#b667c5")]
-    public IIndicatorDatas DcUpper { get; set; }
+    public IIndicatorDataSeries DcUpper { get; set; }
 
     [Output, Stroke("#b667c5")]
-    public IIndicatorDatas DcLower { get; set; }
+    public IIndicatorDataSeries DcLower { get; set; }
 
     [Output, Stroke("#ff0000")]
-    public IIndicatorDatas DcStopUpper { get; set; }
+    public IIndicatorDataSeries DcStopUpper { get; set; }
 
     [Output, Stroke("#ff0000")]
-    public IIndicatorDatas DcStopLower { get; set; }
+    public IIndicatorDataSeries DcStopLower { get; set; }
 
 
     [Parameter, Range(1, int.MaxValue), DefaultValue(1)]
