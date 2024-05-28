@@ -9,6 +9,7 @@ using Sparks.Trader.Api;
 using Sparks.Trader.Common;
 using Sparks.Trader.MarketData;
 using Sparks.Trader.Scripts;
+using Sparks.Utils;
 
 namespace Sparks.Scripts.Custom
 {
@@ -71,13 +72,15 @@ public class Pivot : Indicator
         var l = preBar.Low;
         var c = preBar.Close;
 
-        double r3 = 0; // 阻力3
-        double r2 = 0; // 阻力2
-        double r1 = 0; // 阻力1
-        double p  = 0; // 枢轴点P
-        double s1 = 0; // 支撑1
-        double s2 = 0; // 支撑2
-        double s3 = 0; // 支撑3
+        double r4 = double.NaN; // 阻力4
+        double  r3 = 0;    // 阻力3
+        double  r2 = 0;    // 阻力2
+        double  r1 = 0;    // 阻力1
+        double  p  = double.NaN;    // 枢轴点P
+        double  s1 = 0;    // 支撑1
+        double  s2 = 0;    // 支撑2
+        double  s3 = 0;    // 支撑3
+        double s4 = double.NaN; // 支撑4
 
         switch (Type)
         {
@@ -122,15 +125,18 @@ public class Pivot : Indicator
                 break;
             case EPivotType.Camarilla:
             {
-                p = (h + l + c) / 3;
+                // camarilla不需要枢轴点
+                //p = (h + l + c) / 3;
 
-                r3 = c + (h - l) * 0.25;
-                r2 = c + (h - l) * 0.1666;
-                r1 = c + (h - l) * 0.0833;
+                r4 = c + (h - l) * (1.1/2);
+                r3 = c + (h - l) * (1.1/4);
+                r2 = c + (h - l) * (1.1/6);
+                r1 = c + (h - l) * (1.1/12);
 
-                s1 = c - (h - l) * 0.0833;
-                s2 = c - (h - l) * 0.1666;
-                s3 = c - (h - l) * 0.25;
+                s1 = c - (h - l) * (1.1/12);
+                s2 = c - (h - l) * (1.1/6);
+                s3 = c - (h - l) * (1.1/4);
+                s4 = c - (h - l) * (1.1/2);
             }
                 break;
         }
@@ -147,10 +153,20 @@ public class Pivot : Indicator
 
             var fmt = $"f{Symbol.Digits}";
 
+            ITrendLine obj;
             // 绘制线条
-            var obj = Chart.MainArea.DrawTrendLine($"{day}_{nameof(p)}", new ChartPoint(DayStart.Value, p), new ChartPoint(dayEnd, p), new Stroke(Chart.Setting.ForegroundColor), true,
+            if (!p.IsNullOrNan())
+            {
+                obj = Chart.MainArea.DrawTrendLine($"{day}_{nameof(p)}", new ChartPoint(DayStart.Value, p), new ChartPoint(dayEnd, p), new Stroke(Chart.Setting.ForegroundColor), true,
                                                    Chart.Setting.DefaultFont.WithColor(Chart.Setting.ForegroundColor), $"P:{p.ToString(fmt)}",
                                                    VerticalAlignment.Center, HorizontalAlignment.Left);
+            }
+            if (!r4.IsNullOrNan())
+            {
+                obj = Chart.MainArea.DrawTrendLine($"{day}_{nameof(r4)}", new ChartPoint(DayStart.Value, r4), new ChartPoint(dayEnd, r4), new Stroke(Chart.Setting.BuyColor), true,
+                                                   Chart.Setting.DefaultFont.WithColor(Chart.Setting.BuyColor), $"r4:{r4.ToString(fmt)}",
+                                                   VerticalAlignment.Center, HorizontalAlignment.Left);
+            }
 
             obj = Chart.MainArea.DrawTrendLine($"{day}_{nameof(r3)}", new ChartPoint(DayStart.Value, r3), new ChartPoint(dayEnd, r3), new Stroke(Chart.Setting.BuyColor), true,
                                                Chart.Setting.DefaultFont.WithColor(Chart.Setting.BuyColor), $"R3:{r3.ToString(fmt)}",
@@ -176,6 +192,12 @@ public class Pivot : Indicator
             obj = Chart.MainArea.DrawTrendLine($"{day}_{nameof(s3)}", new ChartPoint(DayStart.Value, s3), new ChartPoint(dayEnd, s3), new Stroke(Chart.Setting.SellColor),
                                                true, Chart.Setting.DefaultFont.WithColor(Chart.Setting.SellColor), $"S3:{s3.ToString(fmt)}",
                                                VerticalAlignment.Center, HorizontalAlignment.Left);
+            if (!s4.IsNullOrNan())
+            {
+                obj = Chart.MainArea.DrawTrendLine($"{day}_{nameof(s4)}", new ChartPoint(DayStart.Value, s4), new ChartPoint(dayEnd, s4), new Stroke(Chart.Setting.SellColor),
+                                                   true, Chart.Setting.DefaultFont.WithColor(Chart.Setting.SellColor), $"s4:{s4.ToString(fmt)}",
+                                                   VerticalAlignment.Center, HorizontalAlignment.Left);
+            }
         }
     }
 
