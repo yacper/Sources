@@ -1,4 +1,5 @@
 ﻿// 演示使用talib计算一个简单的sma
+// 可以通过nuget引入Atypical.TechnicalAnalysis.Functions， 它实现了TALib的Functions，注意，要加上预览版
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.Maui.Graphics;

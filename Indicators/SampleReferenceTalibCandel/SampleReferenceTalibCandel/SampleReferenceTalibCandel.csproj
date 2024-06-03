@@ -6,10 +6,10 @@
     <Platforms>x64</Platforms>
     <DebugType>embedded</DebugType>
     <TargetExt>.spx</TargetExt>
-    <AssemblyName>SampleReferenceTalib</AssemblyName>
+    <AssemblyName>SampleReferenceTalibCandel</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Atypical.TechnicalAnalysis.Functions" Version="0.0.0-alpha.0.173" />
+    <PackageReference Include="Atypical.TechnicalAnalysis.Candles" Version="0.0.0-alpha.0.173" />
     <PackageReference Include="PropertyChanged.Fody" Version="3.4.1">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -25,7 +25,7 @@
     <Reference Include="Sparks.Utils">
       <HintPath>..\..\..\..\Api\Sparks.Utils.dll</HintPath>
     </Reference>
-  </ItemGroup>
+     </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="move /y %22$(TargetPath)%22 %22$(ProjectDir)..\..\%22" />
   </Target>

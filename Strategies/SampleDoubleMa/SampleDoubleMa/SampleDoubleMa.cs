@@ -45,12 +45,17 @@ public class SampleDoubleMa : Strategy
             return;
         }
 
+        IBar b = Bars.FirstOrDefault();
+        Bars2_ = GetBars(Contract, ETimeFrame.W1, b.Time.Date);
+
         // 创建快速均线指标
         QuickMa_ = Indicators.CreateIndicator<SMA>(Bars.Closes, QuickPeriods);
 
         // 创建慢速均线指标
         SlowMa_ = Indicators.CreateIndicator<SMA>(Bars.Closes, SlowPeriods);
     }
+
+    protected IBars Bars2_;
 
     protected override void OnData(ISource source, int index)
     {
