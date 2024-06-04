@@ -161,7 +161,7 @@ public class SamplePlaceOrder : Strategy
             case ETestPlaceOrderType.LimitOpen:
             {
                 var tr = PlaceLimitOrder(Contract,
-                                         Direction, Price, Quantity, EOpenClose.Open, Tif,
+                                         Direction, Quantity, Price,  EOpenClose.Open, Tif,
                                          TakeProfit, StopLoss, Comment,
                                          (result =>
                                              {
@@ -176,7 +176,7 @@ public class SamplePlaceOrder : Strategy
             case ETestPlaceOrderType.StopOpen:
             {
                 var tr = PlaceStopOrder(Contract,
-                                        Direction, Price, Quantity, EOpenClose.Open, Tif,
+                                        Direction,Quantity, Price, EOpenClose.Open, Tif,
                                         TakeProfit, StopLoss, Comment,
                                         (result =>
                                             {
