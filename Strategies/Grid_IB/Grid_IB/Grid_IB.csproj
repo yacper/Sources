@@ -7,6 +7,7 @@
 		<UseWPF>true</UseWPF>
 		<Platforms>x64</Platforms>
 		<DebugType>embedded</DebugType>
+		<TargetExt>.spx</TargetExt>
 		<AssemblyName>Grid_IB</AssemblyName>
 	</PropertyGroup>
 	<ItemGroup>
