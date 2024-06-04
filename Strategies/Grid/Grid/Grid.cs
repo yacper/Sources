@@ -16,6 +16,9 @@ public class Grid : Strategy
     [Parameter, DefaultValue(10)]
     public double MaxOrder { get; set; }
 
+    [Parameter, Display(Description = "每日订单最多"), DefaultValue(4)]
+    public double DayMaxOrder { get; set; }
+
     // 在外汇平台有效
     [Parameter, DefaultValue(999)]
     public int Magic { get; set; }
@@ -145,44 +148,113 @@ public class Grid : Strategy
         }
     }
 
+    // 开单
     protected void EntryOrder(Contract contract, ETradeDirection dir, double quantity, double price,  int steps)
     {
-        Warn($"EntryOrder {contract.Code} {quantity}@{price}[{steps}]...");
+        Warn($"EntryOrder [{steps}] {dir} {contract.Code} {quantity}@{price}...");
 
-        var tp = dir == ETradeDirection.Buy ? price + Step : price - Step;
-        var ret = PlaceLimitOrder(contract, dir, quantity, price, takeProfit:tp, callback: (e) =>
+        IBar b= Bars.Last();
+        var last = Bars.Closes.LastValue;
+
+        var            tp  = dir == ETradeDirection.Buy ? price + Step : price - Step;
+        TradeOperation ret = null;
+        if ((dir== ETradeDirection.Buy && last >= price) ||
+            (dir== ETradeDirection.Sell && price >= last)
+                )
         {
-            var priceLine      = GetPriceLine(steps);
-            var requestOrderId = e.RequestIds.FirstOrDefault();
-
-            if (e.IsSuccessful)
+            ret = PlaceLimitOrder(contract, dir, quantity, price, takeProfit: tp, callback: (e) =>
             {
-                var orderId = e.Order?.Id;
+                var priceLine      = GetPriceLine(steps);
+                var requestOrderId = e.RequestIds.FirstOrDefault();
 
-                var msg = $"EntryOrder[{orderId}] {contract.Code} {quantity}@{price}[{steps}] Succeeded.";
-                Warn(msg);
-                //MyAlert($"${DescId} EntryOrder Succeeded", msg);
-            }
-            else //失败
-            {
-                var msg = $"EntryOrder[{requestOrderId}] {contract.Code} {quantity}@{price}[{steps}] Failed: {e.ToString()}";
-                Error(msg);
-                //MyAlert($"${DescId} EntryOrder Failed", msg);
-
-                // entry失败，如果是timeout，可能是已经成功了，所以要检查一下
-                if (e.ErrorCode == ETradeErrorCode.Timeout) { }
-                else // 开仓彻底失败
+                if (e.IsSuccessful)
                 {
-                }
-            }
+                    var orderId = e.Order?.Id;
 
-            SendingOrders_.Remove(steps);
-        });
-        if (ret.IsExecuting) { SendingOrders_.Add(steps); }
+                    var msg = $"EntryOrder[{orderId}] [{steps}] {Direction} {contract.Code} {quantity}@{price} Succeeded.";
+                    Warn(msg);
+                    //MyAlert($"${DescId} EntryOrder Succeeded", msg);
+                }
+                else //失败
+                {
+                    var msg = $"EntryOrder[{requestOrderId}] [{steps}] {Direction} {contract.Code} {quantity}@{price} Failed: {e.ToString()}";
+                    Error(msg);
+                    //MyAlert($"${DescId} EntryOrder Failed", msg);
+
+                    // entry失败，如果是timeout，可能是已经成功了，所以要检查一下
+                    if (e.ErrorCode == ETradeErrorCode.Timeout) { }
+                    else // 开仓彻底失败
+                    {
+                    }
+                }
+
+                SendingOrders_.Remove(steps);
+            });
+        }
+        else
+        {
+            ret = PlaceStopOrder(contract, dir, quantity, price, takeProfit: tp, callback: (e) =>
+            {
+                var priceLine      = GetPriceLine(steps);
+                var requestOrderId = e.RequestIds.FirstOrDefault();
+
+                if (e.IsSuccessful)
+                {
+                    var orderId = e.Order?.Id;
+
+                    var msg = $"EntryOrder[{orderId}] [{steps}] {Direction} {contract.Code} {quantity}@{price} Succeeded.";
+                    Warn(msg);
+                    //MyAlert($"${DescId} EntryOrder Succeeded", msg);
+                }
+                else //失败
+                {
+                    var msg = $"EntryOrder[{requestOrderId}] [{steps}] {Direction} {contract.Code} {quantity}@{price} Failed: {e.ToString()}";
+                    Error(msg);
+                    //MyAlert($"${DescId} EntryOrder Failed", msg);
+
+                    // entry失败，如果是timeout，可能是已经成功了，所以要检查一下
+                    if (e.ErrorCode == ETradeErrorCode.Timeout) { }
+                    else // 开仓彻底失败
+                    {
+                    }
+                }
+
+                SendingOrders_.Remove(steps);
+            });
+        }
+
+        if (ret.IsExecuting)
+        {
+            SendingOrders_.Add(steps);
+
+            var d = TimeZoneInfo.ConvertTime(b.Time, TimeZoneInfo.Local, Symbol.TradingHours.TimeZoneInfo).Date;
+            if (DayOrderNumber.ContainsKey(d)) { DayOrderNumber[d]++; }
+            else { DayOrderNumber.Add(d, 1); }
+        }
     }
 
     // 检查订单数
-    protected bool CheckCanOpenOrder() { return AllOrders() < MaxOrder; }
+    protected bool CheckCanOpenOrder()
+    {
+        // 检查每日订单数
+        var d = TimeZoneInfo.ConvertTime(Bars.Last().Time, TimeZoneInfo.Local, Symbol.TradingHours.TimeZoneInfo).Date;
+        if (DayOrderNumber.ContainsKey(d))
+        {
+            if (DayOrderNumber[d] >= DayMaxOrder)
+            {
+                Warn($"DayMaxOrder[{DayMaxOrder}] reached.");
+                return false;
+            }
+        }
+
+        if (AllOrders() >= MaxOrder)
+        {
+            Warn($"MaxOrder[{MaxOrder}] reached.");
+            return false;
+        }
+
+        return true;
+    }
 
     string MakeComment(double price)
     {
@@ -227,11 +299,12 @@ public class Grid : Strategy
         {
             double price = Math.Round(BaseLine + step * i, Symbol.Digits);
             var    fmt     = $"f{Symbol.Digits}";
-            ChartArea.DrawHorizontalLine($"Line_{price.ToString(fmt)}", price, GridStroke, true, null, $"[{i}]{price.ToString(fmt)}", VerticalAlignment.Center, HorizontalAlignment.Right);
+            ChartArea.DrawHorizontalLine($"Line_{price.ToString(fmt)}", price, GridStroke, true, null, $"[{i}]{price.ToString(fmt)}", VerticalAlignment.Center, HorizontalAlignment.Left);
         }
     }
 
-    protected int          LastSteps      = -1;
-    protected HashSet<int> SendingOrders_ = new HashSet<int>();
+    protected int                       LastSteps      = -1;
+    protected HashSet<int>              SendingOrders_ = new HashSet<int>();
+    protected Dictionary<DateTime, int> DayOrderNumber      = new Dictionary<DateTime, int>();  // 每日订单数
 }
 }
