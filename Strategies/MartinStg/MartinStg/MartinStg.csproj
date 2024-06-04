@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-    <EnablePreviewFeatures>true</EnablePreviewFeatures>
+    
     <Platforms>x64</Platforms>
     <DebugType>embedded</DebugType>
     <AssemblyName>MartinStg</AssemblyName>

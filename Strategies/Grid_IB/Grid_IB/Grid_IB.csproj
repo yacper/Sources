@@ -3,7 +3,7 @@
 		<!--<TargetFramework>net8.0</TargetFramework>-->
 		<TargetFramework>net8.0-windows</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<EnablePreviewFeatures>true</EnablePreviewFeatures>
+		
 		<UseWPF>true</UseWPF>
 		<Platforms>x64</Platforms>
 		<DebugType>embedded</DebugType>
