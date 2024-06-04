@@ -24,15 +24,6 @@
     <Reference Include="Sparks.Utils">
       <HintPath>..\..\..\..\Api\Sparks.Utils.dll</HintPath>
     </Reference>
-    <Reference Include="TechnicalAnalysis.Candles">
-	    <HintPath>..\..\..\..\Api\TechnicalAnalysis.Candles.dll</HintPath>
-    </Reference>
-    <Reference Include="TechnicalAnalysis.Functions">
-	    <HintPath>..\..\..\..\Api\TechnicalAnalysis.Functions.dll</HintPath>
-    </Reference>
-    <Reference Include="TechnicalAnalysis.Common">
-        <HintPath>..\..\..\..\Api\TechnicalAnalysis.Common.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="move /y %22$(TargetPath)%22 %22$(ProjectDir)..\..\%22" />
