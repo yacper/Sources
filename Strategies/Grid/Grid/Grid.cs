@@ -78,11 +78,11 @@ public class Grid : Strategy
                 return;
 
             int steps = (int)((last - BaseLine) / Step);
-            if (steps != LastSteps)
+            if (steps != LastStepNumber)
             {
                 //Print(StringFormat("Step: %s[%d] -> %s[%d]", DoubleToString(GetPriceLine(LastSteps), Digits) , LastSteps, DoubleToString(GetPriceLine(steps), Digits), steps));
-                Info($"Step: {GetPriceLine(LastSteps)}[{LastSteps}] -> {GetPriceLine(steps)}[{steps}]");
-                LastSteps = steps;
+                Info($"Step: {GetPriceLine(LastStepNumber)}[{LastStepNumber}] -> {GetPriceLine(steps)}[{steps}]");
+                LastStepNumber = steps;
             }
 
             if (steps < 0)
@@ -100,10 +100,10 @@ public class Grid : Strategy
                 return;
 
             int steps = (int)((BaseLine - last) / Step);
-            if (steps != LastSteps)
+            if (steps != LastStepNumber)
             {
-                Info($"Step: {GetPriceLine(LastSteps)}[{LastSteps}] -> {GetPriceLine(steps)}[{steps}]");
-                LastSteps = steps;
+                Info($"Step: {GetPriceLine(LastStepNumber)}[{LastStepNumber}] -> {GetPriceLine(steps)}[{steps}]");
+                LastStepNumber = steps;
             }
 
             if (steps < 0)
@@ -303,8 +303,8 @@ public class Grid : Strategy
         }
     }
 
-    protected int                       LastSteps      = -1;
+    public    int                       LastStepNumber { get; protected set; } =1;
     protected HashSet<int>              SendingOrders_ = new HashSet<int>();
-    protected Dictionary<DateTime, int> DayOrderNumber      = new Dictionary<DateTime, int>();  // 每日订单数
+    public    Dictionary<DateTime, int> DayOrderNumber { get; protected set; } = new Dictionary<DateTime, int>(); // 每日订单数
 }
 }
