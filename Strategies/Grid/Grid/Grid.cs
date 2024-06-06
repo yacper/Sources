@@ -78,11 +78,11 @@ public class Grid : Strategy
                 return;
 
             int steps = (int)((last - BaseLine) / Step);
-            if (steps != LastSteps)
+            if (steps != LastStepNumber)
             {
                 //Print(StringFormat("Step: %s[%d] -> %s[%d]", DoubleToString(GetPriceLine(LastSteps), Digits) , LastSteps, DoubleToString(GetPriceLine(steps), Digits), steps));
-                Info($"Step: {GetPriceLine(LastSteps)}[{LastSteps}] -> {GetPriceLine(steps)}[{steps}]");
-                LastSteps = steps;
+                Info($"Step: {GetPriceLine(LastStepNumber)}[{LastStepNumber}] -> {GetPriceLine(steps)}[{steps}]");
+                LastStepNumber = steps;
             }
 
             if (steps < 0)
@@ -100,10 +100,10 @@ public class Grid : Strategy
                 return;
 
             int steps = (int)((BaseLine - last) / Step);
-            if (steps != LastSteps)
+            if (steps != LastStepNumber)
             {
-                Info($"Step: {GetPriceLine(LastSteps)}[{LastSteps}] -> {GetPriceLine(steps)}[{steps}]");
-                LastSteps = steps;
+                Info($"Step: {GetPriceLine(LastStepNumber)}[{LastStepNumber}] -> {GetPriceLine(steps)}[{steps}]");
+                LastStepNumber = steps;
             }
 
             if (steps < 0)
@@ -149,18 +149,18 @@ public class Grid : Strategy
     }
 
     // 开单
-    protected void EntryOrder(Contract contract, ETradeDirection dir, double quantity, double price,  int steps)
+    protected void EntryOrder(Contract contract, ETradeDirection dir, double quantity, double price, int steps)
     {
         Warn($"EntryOrder [{steps}] {dir} {contract.Code} {quantity}@{price}...");
 
-        IBar b= Bars.Last();
-        var last = Bars.Closes.LastValue;
+        IBar b    = Bars.Last();
+        var  last = Bars.Closes.LastValue;
 
         var            tp  = dir == ETradeDirection.Buy ? price + Step : price - Step;
         TradeOperation ret = null;
-        if ((dir== ETradeDirection.Buy && last >= price) ||
-            (dir== ETradeDirection.Sell && price >= last)
-                )
+        if ((dir == ETradeDirection.Buy && last >= price) ||
+            (dir == ETradeDirection.Sell && price >= last)
+           )
         {
             ret = PlaceLimitOrder(contract, dir, quantity, price, takeProfit: tp, callback: (e) =>
             {
@@ -242,27 +242,29 @@ public class Grid : Strategy
         {
             if (DayOrderNumber[d] >= DayMaxOrder)
             {
-                if (!DayMaxOrderReached_)
+                if (!DayMaxOrderReached)
                 {
                     Warn($"DayMaxOrder[{DayMaxOrder}] reached.");
-                    DayMaxOrderReached_ = true;
+                    DayMaxOrderReached = true;
                 }
+
                 return false;
             }
         }
 
         if (AllOrders() >= MaxOrder)
         {
-            if (!MaxOrderReached_)
+            if (!MaxOrderReached)
             {
                 Warn($"MaxOrder[{MaxOrder}] reached.");
-                MaxOrderReached_ = true;
+                MaxOrderReached = true;
             }
+
             return false;
         }
 
-        DayMaxOrderReached_ = false;
-        MaxOrderReached_ = false;
+        DayMaxOrderReached = false;
+        MaxOrderReached    = false;
 
         return true;
     }
@@ -309,16 +311,17 @@ public class Grid : Strategy
         for (int i = 0; i != Steps; ++i)
         {
             double price = Math.Round(BaseLine + step * i, Symbol.Digits);
-            var    fmt     = $"f{Symbol.Digits}";
+            var    fmt   = $"f{Symbol.Digits}";
             ChartArea.DrawHorizontalLine($"Line_{price.ToString(fmt)}", price, GridStroke, true, null, $"[{i}]{price.ToString(fmt)}", VerticalAlignment.Center, HorizontalAlignment.Left);
         }
     }
 
-    protected int                       LastSteps      = -1;
-    protected HashSet<int>              SendingOrders_ = new HashSet<int>();
-    protected Dictionary<DateTime, int> DayOrderNumber      = new Dictionary<DateTime, int>();  // 每日订单数
+    public    int          LastStepNumber { get; protected set; } = 1;
+    protected HashSet<int> SendingOrders_ = new HashSet<int>();
 
-    protected bool MaxOrderReached_ = false;
-    protected bool DayMaxOrderReached_ = false;
+    public bool MaxOrderReached    { get; protected set; } = false;
+    public bool DayMaxOrderReached { get; protected set; } = false;
+
+    public Dictionary<DateTime, int> DayOrderNumber { get; protected set; } = new Dictionary<DateTime, int>(); // 每日订单数
 }
 }

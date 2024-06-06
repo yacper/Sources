@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-    <EnablePreviewFeatures>true</EnablePreviewFeatures>
+    
     <Platforms>x64</Platforms>
     <DebugType>embedded</DebugType>
     <TargetExt>.spx</TargetExt>
@@ -23,15 +23,6 @@
     </Reference>
     <Reference Include="Sparks.Utils">
       <HintPath>..\..\..\..\Api\Sparks.Utils.dll</HintPath>
-    </Reference>
-    <Reference Include="TechnicalAnalysis.Candles">
-	    <HintPath>..\..\..\..\Api\TechnicalAnalysis.Candles.dll</HintPath>
-    </Reference>
-    <Reference Include="TechnicalAnalysis.Functions">
-	    <HintPath>..\..\..\..\Api\TechnicalAnalysis.Functions.dll</HintPath>
-    </Reference>
-    <Reference Include="TechnicalAnalysis.Common">
-        <HintPath>..\..\..\..\Api\TechnicalAnalysis.Common.dll</HintPath>
     </Reference>
   </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
