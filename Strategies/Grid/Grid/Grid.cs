@@ -242,16 +242,27 @@ public class Grid : Strategy
         {
             if (DayOrderNumber[d] >= DayMaxOrder)
             {
-                Warn($"DayMaxOrder[{DayMaxOrder}] reached.");
+                if (!DayMaxOrderReached_)
+                {
+                    Warn($"DayMaxOrder[{DayMaxOrder}] reached.");
+                    DayMaxOrderReached_ = true;
+                }
                 return false;
             }
         }
 
         if (AllOrders() >= MaxOrder)
         {
-            Warn($"MaxOrder[{MaxOrder}] reached.");
+            if (!MaxOrderReached_)
+            {
+                Warn($"MaxOrder[{MaxOrder}] reached.");
+                MaxOrderReached_ = true;
+            }
             return false;
         }
+
+        DayMaxOrderReached_ = false;
+        MaxOrderReached_ = false;
 
         return true;
     }
@@ -306,5 +317,8 @@ public class Grid : Strategy
     protected int                       LastSteps      = -1;
     protected HashSet<int>              SendingOrders_ = new HashSet<int>();
     protected Dictionary<DateTime, int> DayOrderNumber      = new Dictionary<DateTime, int>();  // 每日订单数
+
+    protected bool MaxOrderReached_ = false;
+    protected bool DayMaxOrderReached_ = false;
 }
 }
