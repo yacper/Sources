@@ -53,6 +53,8 @@ public class SampleDoubleMa : Strategy
 
         // 创建慢速均线指标
         SlowMa_ = Indicators.CreateIndicator<SMA>(Bars.Closes, SlowPeriods);
+
+        Fill(QuickMaResult, SlowMaResult, new Fill(QuickMaResult.Stroke.Color.WithAlpha(0.3f)), new Fill(SlowMaResult.Stroke.Color.WithAlpha(0.3f)));
     }
 
     protected IBars Bars2_;

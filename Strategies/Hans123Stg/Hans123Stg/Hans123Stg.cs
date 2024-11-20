@@ -1,4 +1,4 @@
-/********************************************************************
+﻿/********************************************************************
     created:	2017/4/14 15:14:23
     author:		rush
     email:		
@@ -53,7 +53,7 @@ public class Hans123Stg : Strategy
 
     protected override void OnStart()
     {
-        Pinbar_ = CreateIndicator<Pinbar>();
+        Pinbar_ = CreateScript<Pinbar>();
 
         LongTrade_   = null;
         LongSending_ = false;
@@ -145,7 +145,7 @@ public class Hans123Stg : Strategy
     }
 
 
-    protected void ExecuteMarketOrder(SymbolContract contract, ETradeDirection dir, double quantity, string label = null)
+    protected void ExecuteMarketOrder(Contract contract, ETradeDirection dir, double quantity, string label = null)
     {
         var oi = new MarketOrderReq(contract, dir, quantity)
         {

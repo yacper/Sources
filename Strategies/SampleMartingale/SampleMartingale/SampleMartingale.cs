@@ -50,14 +50,14 @@ public class SampleMartingale : Strategy
         if (direction == ETradeDirection.Buy)
         {
             basePrice  = Symbol.Ask;
-            takeProfit = basePrice + TakeProfitPips * Symbol.PointSize;
-            stopLoss   = basePrice - StopLossPips * Symbol.PointSize;
+            takeProfit = basePrice + TakeProfitPips * Symbol.TickSize;
+            stopLoss   = basePrice - StopLossPips * Symbol.TickSize;
         }
         else if (direction == ETradeDirection.Sell)
         {
             basePrice  = Symbol.Bid;
-            takeProfit = basePrice - TakeProfitPips * Symbol.PointSize;
-            stopLoss   = basePrice + StopLossPips * Symbol.PointSize;
+            takeProfit = basePrice - TakeProfitPips * Symbol.TickSize;
+            stopLoss   = basePrice + StopLossPips * Symbol.TickSize;
         }
 
         PlaceMarketOrder(Contract,

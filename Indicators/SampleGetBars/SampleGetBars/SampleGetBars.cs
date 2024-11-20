@@ -46,7 +46,7 @@ public class SampleGetBars : Indicator
         Result1[index] = Mva1_.Result[index];
 
         var dt     = Bars[index].Time;
-        var modDt  = TimeFrame < ETimeFrame.D1 ? dt.ModTimeFrame(ETimeFrame.D1, Symbol.TradingHours) : dt.Date;
+        var modDt  = TimeFrame < ETimeFrame.D1 ? dt.ModTimeFrame(ETimeFrame.D1, Symbol.MarketTime) : dt.Date;
         var index2 = Bars2_.Times.IndexOf(modDt);
         if (index2 != -1)
             Result2[index] = Mva2_.Result[index2];

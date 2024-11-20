@@ -150,7 +150,7 @@ public class Grid_IB : Strategy
         double lastPrice = last.Close;
 
         // 是否交易时段
-        if (Symbol.TradingHours != null && !Symbol.TradingHours.IsOpened(last.Time))
+        if (Symbol.MarketTime != null && !Symbol.MarketTime.IsOpened(last.Time))
             return;
 
 

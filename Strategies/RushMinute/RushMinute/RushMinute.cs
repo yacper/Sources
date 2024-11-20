@@ -252,7 +252,7 @@ namespace Sparks.Scripts.Custom
 
 
 
-		protected void ExecuteMarketOrder(SymbolContract contract, ETradeDirection dir, double quantity, string label = null)
+		protected void ExecuteMarketOrder(Contract contract, ETradeDirection dir, double quantity, string label = null)
 		{
 			var oi = new MarketOrderReq(contract, dir, quantity)
 			{

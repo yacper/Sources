@@ -54,7 +54,7 @@ public class Pivot : Indicator
 
         // 前一天的数据
         var dt    = bar.Time;
-        var modDt = dt.ModTimeFrame(ETimeFrame.D1, Symbol.TradingHours);
+        var modDt = dt.ModTimeFrame(ETimeFrame.D1, Symbol.MarketTime);
         int idx   = DayBars.FindIndex(p => p.Time.Date == modDt.Date);
         if (idx == -1)
             return;
@@ -143,13 +143,13 @@ public class Pivot : Indicator
 
 
         // 新的一天
-        if (dt.ModTimeFrame(ETimeFrame.D1, Symbol.TradingHours) != DayStart.Value.ModTimeFrame(ETimeFrame.D1, Symbol.TradingHours)) { DayStart = dt; }
+        if (dt.ModTimeFrame(ETimeFrame.D1, Symbol.MarketTime) != DayStart.Value.ModTimeFrame(ETimeFrame.D1, Symbol.MarketTime)) { DayStart = dt; }
 
         // 当天还没结束
         {
             var dayEnd = dt;
 
-            var day = dayEnd.ModTimeFrame(ETimeFrame.D1, Symbol.TradingHours).Date;
+            var day = dayEnd.ModTimeFrame(ETimeFrame.D1, Symbol.MarketTime).Date;
 
             var fmt = $"f{Symbol.Digits}";
 

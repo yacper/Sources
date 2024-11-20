@@ -227,7 +227,7 @@ public class Grid : Strategy
         {
             SendingOrders_.Add(steps);
 
-            var d = TimeZoneInfo.ConvertTime(b.Time, TimeZoneInfo.Local, Symbol.TradingHours.TimeZoneInfo).Date;
+            var d = TimeZoneInfo.ConvertTime(b.Time, TimeZoneInfo.Local, Symbol.MarketTime.TimeZoneInfo).Date;
             if (DayOrderNumber.ContainsKey(d)) { DayOrderNumber[d]++; }
             else { DayOrderNumber.Add(d, 1); }
         }
@@ -237,7 +237,7 @@ public class Grid : Strategy
     protected bool CheckCanOpenOrder()
     {
         // 检查每日订单数
-        var d = TimeZoneInfo.ConvertTime(Bars.Last().Time, TimeZoneInfo.Local, Symbol.TradingHours.TimeZoneInfo).Date;
+        var d = TimeZoneInfo.ConvertTime(Bars.Last().Time, TimeZoneInfo.Local, Symbol.MarketTime.TimeZoneInfo).Date;
         if (DayOrderNumber.ContainsKey(d))
         {
             if (DayOrderNumber[d] >= DayMaxOrder)
