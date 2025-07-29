@@ -1,4 +1,7 @@
-﻿using System.ComponentModel;
+﻿// 简单双均线策略
+// 为了防止盘中均线多次互相穿越，主要逻辑在bar新开时执行，研判上一个bar结束时的均线情况
+// bar新开时，判断上一个bar的快速均线是否上穿慢速均线，如果是，平空单，开多单。 如果上一个bar的快速均线下穿慢速均线，平多单，开空单
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.Maui.Graphics;
 using Sparks.Trader.Api;
@@ -45,9 +48,6 @@ public class SampleDoubleMa : Strategy
             return;
         }
 
-        IBar b = Bars.FirstOrDefault();
-        Bars2_ = GetBars(Contract, ETimeFrame.W1, b.Time.Date);
-
         // 创建快速均线指标
         QuickMa_ = Indicators.CreateIndicator<SMA>(Bars.Closes, QuickPeriods);
 
@@ -57,7 +57,6 @@ public class SampleDoubleMa : Strategy
         Fill(QuickMaResult, SlowMaResult, new Fill(QuickMaResult.Stroke.Color.WithAlpha(0.3f)), new Fill(SlowMaResult.Stroke.Color.WithAlpha(0.3f)));
     }
 
-    protected IBars Bars2_;
 
     protected override void OnData(ISource source, int index)
     {
@@ -65,6 +64,11 @@ public class SampleDoubleMa : Strategy
         QuickMaResult[index] = QuickMa_.Result[index];
         // 设置慢速均线输出
         SlowMaResult[index] = SlowMa_.Result[index];
+
+        // 判断是否bar新开
+        if(!source.IsLastOpen)
+            return;
+
 
         // 历史数据没有结束，不执行逻辑
         if (!IsHistoryOver)
@@ -80,7 +84,7 @@ public class SampleDoubleMa : Strategy
         ShortTrade_ = TradingAccount.Trades.FirstOrDefault(p => p.Code == Symbol.Code && p.Direction == ETradeDirection.Sell && p.Comment == Label);
 
         // 快速均线上穿慢速均线
-        if (QuickMa_.Result.CrossOver(SlowMa_.Result))
+        if (QuickMa_.Result.CrossOver(SlowMa_.Result, QuickMa_.Result.Count - 2, SlowMa_.Result.Count - 2))
         {
             // 如果有空单，平空单
             if (ShortTrade_ != null)
@@ -90,7 +94,7 @@ public class SampleDoubleMa : Strategy
                 ExecuteMarketOrder(Symbol.Contract, ETradeDirection.Buy, Quantity, Label);
         }
         // 快速均线下穿慢速均线
-        else if (QuickMa_.Result.CrossDown(SlowMa_.Result))
+        else if (QuickMa_.Result.CrossDown(SlowMa_.Result, QuickMa_.Result.Count - 2, SlowMa_.Result.Count - 2))
         {
             // 如果有多单，平多单
             if (LongTrade_ != null)

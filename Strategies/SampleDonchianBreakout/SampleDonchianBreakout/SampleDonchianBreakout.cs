@@ -1,6 +1,9 @@
 ﻿/// Dochian Channel的简单突破策略，处理订单时，针对两种类型的交易通道做了不同的处理：
 ///     对于像外汇平台这种有Trade的，直接通过Trade操作，在回测中，也是这种情况
 ///     对于IB这种没有Trade的，通过Order配合Position操作
+/// 
+// 为了防止盘中均线多次互相穿越，主要逻辑在bar新开时执行，研判上一个bar结束时的均线情况
+// bar新开时，判断上一个bar的快速均线是否上穿慢速均线，如果是，平空单，开多单。 如果上一个bar的快速均线下穿慢速均线，平多单，开空单
 
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
