@@ -64,7 +64,7 @@ public class MartinStg : Strategy
             try { lastIndex = TradeLabel.Parse(lastTrade.Comment).Index; }
             catch (Exception e) { Error(e); }
 
-            var plrange = trades.Sum(p => p.PLPips * Symbol.PointSize);
+            var plrange = trades.Sum(p => p.PLPips * Symbol.Digits);
 
             // takeprofit 所有
             if (plrange >= TpRange)
@@ -84,12 +84,12 @@ public class MartinStg : Strategy
 
     protected void ExecuteMarketOrder(Contract contract, ETradeDirection dir, double quantity, string label = null)
     {
-        var oi = new MarketOrderReq(contract, dir, Symbol.NormalizeLots(quantity), ETIF.GTC)
-        {
-            Label = label,
-        };
+        //var oi = new MarketOrderReq(contract, dir, Symbol.NormalizeLots(quantity), ETIF.GTC)
+        //{
+        //    Label = label,
+        //};
 
-        var ret = PlaceOrder(oi, (e) =>
+        var ret = PlaceMarketOrder(contract, dir, quantity, EOpenClose.Open, label:label, callback:(e) =>
         {
             if (e.IsSuccessful)
             {
@@ -109,12 +109,7 @@ public class MartinStg : Strategy
         if (t == null)
             return;
 
-        var oi = new MarketOrderReq(t.Symbol.Contract, t.Direction.Reverse(), t.Lots)
-        {
-            CloseTradeId = t.Id,
-            OpenClose    = EOpenClose.Close
-        };
-        var ret = PlaceOrder(oi, (e) =>
+        var ret = CloseTrade(t, (e) =>
         {
             if (e.IsSuccessful) { MyAlert("close", t.ToString()); }
 

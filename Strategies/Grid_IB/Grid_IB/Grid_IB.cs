@@ -348,7 +348,7 @@ public class Grid_IB : Strategy
             //        Volume = pos.Volume
             //    });
             //}
-            PositionLog = PositionFile.FileToJsonObj<ObservableCollection<PositionRow>>();
+            PositionLog = PositionFile.FromJsonFile<ObservableCollection<PositionRow>>();
         }
         catch { }
 
@@ -583,7 +583,7 @@ public class Grid_IB : Strategy
             var row = PositionLog.FirstOrDefault(p => p.OpenClientOrderId == o.LocalId);
             if (row != null)
             {
-                if (o.Status == EOrderStatus.Rejected || o.Status == EOrderStatus.Canceled || o.Status == EOrderStatus.CanceledPartial || o.Status == EOrderStatus.Expired ||
+                if (o.Status == EOrderStatus.Rejected || o.Status == EOrderStatus.Canceled || o.Status == EOrderStatus.CanceledPartially || o.Status == EOrderStatus.Expired ||
                     o.Status == EOrderStatus.Inactive)
                 {
                     row.OpenClientOrderId = null;
@@ -602,7 +602,7 @@ public class Grid_IB : Strategy
             var row = PositionLog.FirstOrDefault(p => p.CloseClientOrderId == o.LocalId);
             if (row != null)
             {
-                if (o.Status == EOrderStatus.Rejected || o.Status == EOrderStatus.Canceled || o.Status == EOrderStatus.CanceledPartial || o.Status == EOrderStatus.Expired ||
+                if (o.Status == EOrderStatus.Rejected || o.Status == EOrderStatus.Canceled || o.Status == EOrderStatus.CanceledPartially || o.Status == EOrderStatus.Expired ||
                     o.Status == EOrderStatus.Inactive)
                 {
                     row.CloseClientOrderId = null;

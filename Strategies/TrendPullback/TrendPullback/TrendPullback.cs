@@ -54,8 +54,8 @@ public class TrendPullback : Strategy
 
     protected override void OnStart()
     {
-        Pinbar_ = CreateIndicator<Pinbar>();
-        Rsi_    = CreateIndicator<RSI>(Bars.Closes, RsiPeriods);
+        Pinbar_ = Indicators.CreateIndicator<Pinbar>();
+        Rsi_    = Indicators.CreateIndicator<RSI>(Bars.Closes, RsiPeriods);
 
     }
 
@@ -160,12 +160,7 @@ public class TrendPullback : Strategy
 
     protected void ExecuteMarketOrder(Contract contract, ETradeDirection dir, double quantity, string label = null)
     {
-        var oi = new MarketOrderReq(contract, dir, quantity)
-        {
-            Label = label
-        };
-
-        var ret = this.TradingAccount.PlaceOrder(oi, (e) =>
+        var ret = PlaceMarketOrder(contract, dir, quantity,label:label, callback:(e) =>
         {
             if (e.IsSuccessful)
             {
@@ -197,12 +192,7 @@ public class TrendPullback : Strategy
 
     protected void CloseTrade(ITrade t)
     {
-        var oi = new MarketOrderReq(t.Symbol.Contract, t.Direction.Reverse(), t.Lots)
-        {
-            CloseTradeId = t.Id,
-            OpenClose    = EOpenClose.Close
-        };
-        var ret = this.TradingAccount.PlaceOrder(oi, (e) =>
+        var ret = CloseTrade(t, (e) =>
         {
             if (e.IsSuccessful)
             {

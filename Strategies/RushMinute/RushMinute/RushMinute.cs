@@ -11,6 +11,7 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.Maui.Graphics;
 using Sparks.Trader.Api;
 using Sparks.Trader.Scripts;
+using Sparks.Trader.Trading;
 using Sparks.Utils;
 
 namespace Sparks.Scripts.Custom
@@ -101,9 +102,9 @@ namespace Sparks.Scripts.Custom
 
 		protected override void OnStart()
 		{
-			Pinbar_ = CreateIndicator<Pinbar>();
-			Rsi_ = CreateIndicator<RSI>(Bars.Closes, RsiPeriods);
-			Atr_ = CreateIndicator<ATR>(AtrPeriods);
+			Pinbar_ = Indicators.CreateIndicator<Pinbar>();
+			Rsi_ = Indicators.CreateIndicator<RSI>(Bars.Closes, RsiPeriods);
+			Atr_ = Indicators.CreateIndicator<ATR>(AtrPeriods);
 		}
 
 
@@ -233,7 +234,7 @@ namespace Sparks.Scripts.Custom
 			if (!(source as IBars).IsLastOpen)
 				return ERushType.ENoRush;
 
-			var atr = Atr_.ATRLine.Last(2);
+			var atr = Atr_.Result.Last(2);
 
 			IBar b = source[index -1] as IBar;
 
@@ -254,12 +255,7 @@ namespace Sparks.Scripts.Custom
 
 		protected void ExecuteMarketOrder(Contract contract, ETradeDirection dir, double quantity, string label = null)
 		{
-			var oi = new MarketOrderReq(contract, dir, quantity)
-			{
-				Label = label
-			};
-
-			var ret = this.TradingAccount.PlaceOrder(oi, (e) =>
+			var ret = PlaceMarketOrder(contract, dir, quantity, label:label, callback:(e) =>
 				{
 					if (e.IsSuccessful)
 					{
@@ -294,12 +290,7 @@ namespace Sparks.Scripts.Custom
 
 		protected void CloseTrade(ITrade t)
 		{
-			var oi = new MarketOrderReq(t.Symbol.Contract, t.Direction.Reverse(), t.Lots)
-			{
-				CloseTradeId = t.Id,
-			OpenClose = EOpenClose.Close
-			};
-			var ret = this.TradingAccount.PlaceOrder(oi, (e) =>
+			var ret = CloseTrade(t, (e) =>
 				{
 					if (e.IsSuccessful)
 					{
